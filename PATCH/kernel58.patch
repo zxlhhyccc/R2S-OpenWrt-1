@@ -1,0 +1,2035 @@
+From 0d7803eb5f12cb2e5512fd025d99b1ae5a61210a Mon Sep 17 00:00:00 2001
+From: John Audia <graysky@archlinux.us>
+Date: Tue, 11 Aug 2020 12:13:19 -0400
+Subject: [PATCH] kernel: bump 5.4 to 5.4.58
+
+This PR is a blend of several kernel bumps authored by ldir taken from his
+staging tree w/ some further adjustments made by me and update_kernel.sh
+
+Summary:
+Deleted upstreamed patches:
+ 022-v5.8-mtd-rawnand-brcmnand-correctly-verify-erased-pages.patch
+ 024-v5.8-mtd-rawnand-brcmnand-fix-CS0-layout.patch
+ 742-v5.5-net-sfp-add-support-for-module-quirks.patch
+ 743-v5.5-net-sfp-add-some-quirks-for-GPON-modules.patch
+ 641-sch_cake-fix-IP-protocol-handling-in-the-presence-of.patch
+ 0402-net-ethernet-mtk_eth_soc-Always-call-mtk_gmac0_rgmii.patch
+
+Manually merged patches:
+ 395-v5.8-net-sch_cake-Take-advantage-of-skb-hash-where-appropriate.patch
+ 701-net-0231-enetc-Use-DT-protocol-information-to-set-up-the-port.patch
+ 950-0132-lan78xx-Debounce-link-events-to-minimize-poll-storm.patch
+
+Remaining patches auto-adjusted by update_kernel.sh
+
+Build system: x86_64
+Run-tested: Netgear R7800 (ipq806x)
+
+No dmesg regressions, everything functional
+
+Signed-off-by: John Audia <graysky@archlinux.us>
+---
+ include/kernel-version.mk                     |   4 +-
+ ...mware-loader-for-uPD720201-and-uPD72.patch |  14 +-
+ .../802-usb-xhci-force-msi-renesas-xhci.patch |   2 +-
+ ...S-ath79-select-the-PINCTRL-subsystem.patch |   2 +-
+ .../0032-MIPS-ath79-sanitize-symbols.patch    |   2 +-
+ .../910-unaligned_access_hacks.patch          |   4 +-
+ ...8xx-Enable-LEDs-and-auto-negotiation.patch |   6 +-
+ ...78xx-Read-initial-EEE-status-from-DT.patch |   2 +-
+ ...Disable-TCP-Segmentation-Offload-TSO.patch |   4 +-
+ ...e-enabling-of-EEE-into-PHY-init-code.patch |   4 +-
+ ...e-link-events-to-minimize-poll-storm.patch |   5 +-
+ ...xx-EEE-support-is-now-a-PHY-property.patch |   2 +-
+ ...use-default-alignment-for-rx-buffers.patch |   2 +-
+ ...Show-that-the-VIA-VL805-supports-LPM.patch |   4 +-
+ ...or-host-controllers-that-don-t-updat.patch |   4 +-
+ ...ce-quirks-for-Freeway-Airmouse-T3-an.patch |   4 +-
+ .../905-BCM53573-minor-hacks.patch            |   2 +-
+ ...-brcmnand-improve-hamming-oob-layout.patch |   2 +-
+ ...cmnand-correctly-verify-erased-pages.patch |  63 -------
+ ...-mtd-rawnand-brcmnand-fix-CS0-layout.patch |  34 ----
+ ...5.5-MIPS-BPF-Restore-MIPS32-cBPF-JIT.patch |  13 --
+ ...antage-of-skb-hash-where-appropriate.patch | 170 ------------------
+ ...ve-fwnode-parsing-into-sfp-bus-layer.patch |   2 +-
+ ....5-net-sfp-rework-upstream-interface.patch |  12 +-
+ ...fix-sfp_bus_put-kernel-documentation.patch |   2 +-
+ ...et-sfp-add-support-for-module-quirks.patch | 111 ------------
+ ...sfp-add-some-quirks-for-GPON-modules.patch |  52 ------
+ .../generic/hack-5.4/221-module_exports.patch |   6 +-
+ .../301-mips_image_cmdline_hack.patch         |   2 +-
+ ...protocol-handling-in-the-presence-of.patch | 114 ------------
+ .../hack-5.4/904-debloat_dma_buf.patch        |   2 +-
+ .../300-mips_expose_boot_raw.patch            |   4 +-
+ ...ng-with-source-address-failed-policy.patch |  22 +--
+ .../810-pci_disable_common_quirks.patch       |   6 +-
+ .../lantiq/patches-5.4/0152-lantiq-VPE.patch  |   2 +-
+ ...tocol-information-to-set-up-the-port.patch |   8 +-
+ ...tc-WA-for-MDIO-register-access-issue.patch |   2 +-
+ ...etc_gregs-with-a-readers-writer-lock.patch |   2 +-
+ ...move-mdio-bus-on-PF-probe-error-path.patch |   2 +-
+ ...ort-tsn-capabilities-qbv-qci-qbu-cbs.patch |   2 +-
+ ...ma-calculate-the-real-count-for-slav.patch |   4 +-
+ ...ma-Add-eDMA-support-for-QorIQ-LS1028.patch |   4 +-
+ ...low-specifying-s2-prot-bits-when-map.patch |   2 +-
+ ...rop-qman-mmio-cacheable-mapping-hack.patch |   4 +-
+ ...sable-MSI-on-CYW4356-and-CYW4359-chi.patch |   2 +-
+ ...-on-marvel-88w9098-and-88w8997-chips.patch |   2 +-
+ .../0400-eth-fix-rx-vlan-hw-offload.patch     |   2 +-
+ .../0401-eth-fix-eth1-tx-timeout.patch        |   6 +-
+ ..._eth_soc-Always-call-mtk_gmac0_rgmii.patch |   9 +-
+ ...ngs-PCI-Mediatek-Update-PCIe-binding.patch |   6 +-
+ .../mediatek/patches-5.4/0999-hnat.patch      |  12 +-
+ .../1000-eth-gdm-config-backport.patch        |  10 +-
+ ...1001-eth-mtk-disable-TBDDONE-support.patch |   4 +-
+ ...on-build_skb-in-mvneta_rx_swbm-poll-.patch |   2 +-
+ ...013-net-mvneta-add-basic-XDP-support.patch |   2 +-
+ ...DP-support-if-sw-bm-is-used-as-fallb.patch |   6 +-
+ ...-mvebu-armada-38x-enable-libata-leds.patch |   2 +-
+ ...r-Gateworks-PLX-PEX860x-switch-with-.patch |   2 +-
+ .../0069-awake-rt305x-dwc2-controller.patch   |   2 +-
+ ...hernet-mediatek-use-napi_consume_skb.patch |  12 +-
+ ...ethernet-mediatek-support-net-labels.patch |   8 +-
+ ...usb3-controller-node-for-RK3328-SoCs.patch |   2 +-
+ ...ckchip-enable-LAN-port-on-NanoPi-R2S.patch |   4 +-
+ ...dd-OF-node-for-USB-eth-on-NanoPi-R2S.patch |   2 +-
+ 64 files changed, 125 insertions(+), 688 deletions(-)
+ delete mode 100644 target/linux/bcm63xx/patches-5.4/022-v5.8-mtd-rawnand-brcmnand-correctly-verify-erased-pages.patch
+ delete mode 100644 target/linux/bcm63xx/patches-5.4/024-v5.8-mtd-rawnand-brcmnand-fix-CS0-layout.patch
+ delete mode 100644 target/linux/generic/backport-5.4/742-v5.5-net-sfp-add-support-for-module-quirks.patch
+ delete mode 100644 target/linux/generic/backport-5.4/743-v5.5-net-sfp-add-some-quirks-for-GPON-modules.patch
+ delete mode 100644 target/linux/generic/hack-5.4/641-sch_cake-fix-IP-protocol-handling-in-the-presence-of.patch
+
+diff --git a/include/kernel-version.mk b/include/kernel-version.mk
+index 1ff1a0967f74..52c8a0ff2c5c 100644
+--- a/include/kernel-version.mk
++++ b/include/kernel-version.mk
+@@ -8,11 +8,11 @@ endif
+ 
+ LINUX_VERSION-4.14 = .193
+ LINUX_VERSION-4.19 = .138
+-LINUX_VERSION-5.4 = .52
++LINUX_VERSION-5.4 = .58
+ 
+ LINUX_KERNEL_HASH-4.14.193 = 0b0fb41d4430e1a42738b341cbfd2f41951aa5cd02acabbd53f076119c8b9f03
+ LINUX_KERNEL_HASH-4.19.138 = d15c27d05f6c527269b75b30cc72972748e55720e7e00ad8abbaa4fe3b1d5e02
+-LINUX_KERNEL_HASH-5.4.52 = 037efa531120b1c20ff55e78cd3e17288b1804b3a57dc31de760837b3bea5d3a
++LINUX_KERNEL_HASH-5.4.58 = 702fe2af119375387b314481b603d8ce71e71b4e5bae4cb70a980e0951b21647
+ 
+ remove_uri_prefix=$(subst git://,,$(subst http://,,$(subst https://,,$(1))))
+ sanitize_uri=$(call qstrip,$(subst @,_,$(subst :,_,$(subst .,_,$(subst -,_,$(subst /,_,$(1)))))))
+diff --git a/target/linux/apm821xx/patches-5.4/801-usb-xhci-add-firmware-loader-for-uPD720201-and-uPD72.patch b/target/linux/apm821xx/patches-5.4/801-usb-xhci-add-firmware-loader-for-uPD720201-and-uPD72.patch
+index 36eab9349b28..e9cf98bb0eca 100644
+--- a/target/linux/apm821xx/patches-5.4/801-usb-xhci-add-firmware-loader-for-uPD720201-and-uPD72.patch
++++ b/target/linux/apm821xx/patches-5.4/801-usb-xhci-add-firmware-loader-for-uPD720201-and-uPD72.patch
+@@ -48,9 +48,9 @@ Signed-off-by: Vinod Koul <vkoul@kernel.org>
+  
+  #include "xhci.h"
+  #include "xhci-trace.h"
+-@@ -57,6 +59,44 @@
+- #define PCI_DEVICE_ID_AMD_PROMONTORYA_1			0x43bc
+- #define PCI_DEVICE_ID_ASMEDIA_1042A_XHCI		0x1142
++@@ -60,6 +62,44 @@
++ #define PCI_DEVICE_ID_ASMEDIA_1142_XHCI			0x1242
++ #define PCI_DEVICE_ID_ASMEDIA_2142_XHCI			0x2142
+  
+ +#define RENESAS_FW_VERSION				0x6C
+ +#define RENESAS_ROM_CONFIG				0xF0
+@@ -93,7 +93,7 @@ Signed-off-by: Vinod Koul <vkoul@kernel.org>
+  static const char hcd_name[] = "xhci_hcd";
+  
+  static struct hc_driver __read_mostly xhci_pci_hc_driver;
+-@@ -284,6 +324,873 @@ static void xhci_pme_acpi_rtd3_enable(st
++@@ -287,6 +327,873 @@ static void xhci_pme_acpi_rtd3_enable(st
+  static void xhci_pme_acpi_rtd3_enable(struct pci_dev *dev) { }
+  #endif /* CONFIG_ACPI */
+  
+@@ -967,7 +967,7 @@ Signed-off-by: Vinod Koul <vkoul@kernel.org>
+  /* called during probe() after chip reset completes */
+  static int xhci_pci_setup(struct usb_hcd *hcd)
+  {
+-@@ -325,6 +1232,27 @@ static int xhci_pci_probe(struct pci_dev
++@@ -328,6 +1235,27 @@ static int xhci_pci_probe(struct pci_dev
+  	struct hc_driver *driver;
+  	struct usb_hcd *hcd;
+  
+@@ -995,7 +995,7 @@ Signed-off-by: Vinod Koul <vkoul@kernel.org>
+  	driver = (struct hc_driver *)id->driver_data;
+  
+  	/* Prevent runtime suspending between USB-2 and USB-3 initialization */
+-@@ -386,6 +1314,16 @@ static void xhci_pci_remove(struct pci_d
++@@ -389,6 +1317,16 @@ static void xhci_pci_remove(struct pci_d
+  {
+  	struct xhci_hcd *xhci;
+  
+@@ -1012,7 +1012,7 @@ Signed-off-by: Vinod Koul <vkoul@kernel.org>
+  	xhci = hcd_to_xhci(pci_get_drvdata(dev));
+  	xhci->xhc_state |= XHCI_STATE_REMOVING;
+  
+-@@ -513,6 +1451,11 @@ static int xhci_pci_resume(struct usb_hc
++@@ -516,6 +1454,11 @@ static int xhci_pci_resume(struct usb_hc
+  	if (pdev->vendor == PCI_VENDOR_ID_INTEL)
+  		usb_enable_intel_xhci_ports(pdev);
+  
+diff --git a/target/linux/apm821xx/patches-5.4/802-usb-xhci-force-msi-renesas-xhci.patch b/target/linux/apm821xx/patches-5.4/802-usb-xhci-force-msi-renesas-xhci.patch
+index 7f09adf6a3e0..02c9bcb2bf8c 100644
+--- a/target/linux/apm821xx/patches-5.4/802-usb-xhci-force-msi-renesas-xhci.patch
++++ b/target/linux/apm821xx/patches-5.4/802-usb-xhci-force-msi-renesas-xhci.patch
+@@ -13,7 +13,7 @@ produce a noisy warning.
+ 
+ --- a/drivers/usb/host/xhci-pci.c
+ +++ b/drivers/usb/host/xhci-pci.c
+-@@ -275,6 +275,7 @@ static void xhci_pci_quirks(struct devic
++@@ -278,6 +278,7 @@ static void xhci_pci_quirks(struct devic
+  	    pdev->device == 0x0015) {
+  		xhci->quirks |= XHCI_RESET_ON_RESUME;
+  		xhci->quirks |= XHCI_ZERO_64B_REGS;
+diff --git a/target/linux/ath79/patches-5.4/0011-MIPS-ath79-select-the-PINCTRL-subsystem.patch b/target/linux/ath79/patches-5.4/0011-MIPS-ath79-select-the-PINCTRL-subsystem.patch
+index 4ac58d10c48d..2edd06110c52 100644
+--- a/target/linux/ath79/patches-5.4/0011-MIPS-ath79-select-the-PINCTRL-subsystem.patch
++++ b/target/linux/ath79/patches-5.4/0011-MIPS-ath79-select-the-PINCTRL-subsystem.patch
+@@ -14,7 +14,7 @@ Signed-off-by: John Crispin <john@phrozen.org>
+ 
+ --- a/arch/mips/Kconfig
+ +++ b/arch/mips/Kconfig
+-@@ -295,6 +295,7 @@ config BCM63XX
++@@ -296,6 +296,7 @@ config BCM63XX
+  	select SYS_HAS_EARLY_PRINTK
+  	select SWAP_IO_SPACE
+  	select GPIOLIB
+diff --git a/target/linux/ath79/patches-5.4/0032-MIPS-ath79-sanitize-symbols.patch b/target/linux/ath79/patches-5.4/0032-MIPS-ath79-sanitize-symbols.patch
+index 382c5e6dfaad..14dddd514767 100644
+--- a/target/linux/ath79/patches-5.4/0032-MIPS-ath79-sanitize-symbols.patch
++++ b/target/linux/ath79/patches-5.4/0032-MIPS-ath79-sanitize-symbols.patch
+@@ -15,7 +15,7 @@ Signed-off-by: John Crispin <john@phrozen.org>
+ 
+ --- a/arch/mips/Kconfig
+ +++ b/arch/mips/Kconfig
+-@@ -216,6 +216,8 @@ config ATH79
++@@ -217,6 +217,8 @@ config ATH79
+  	select SYS_SUPPORTS_BIG_ENDIAN
+  	select SYS_SUPPORTS_MIPS16
+  	select SYS_SUPPORTS_ZBOOT_UART_PROM
+diff --git a/target/linux/ath79/patches-5.4/910-unaligned_access_hacks.patch b/target/linux/ath79/patches-5.4/910-unaligned_access_hacks.patch
+index 053b72023f3b..fa40fab314c2 100644
+--- a/target/linux/ath79/patches-5.4/910-unaligned_access_hacks.patch
++++ b/target/linux/ath79/patches-5.4/910-unaligned_access_hacks.patch
+@@ -556,7 +556,7 @@
+  #include <linux/netdevice.h>
+ --- a/include/net/inet_ecn.h
+ +++ b/include/net/inet_ecn.h
+-@@ -139,9 +139,9 @@ static inline int IP6_ECN_set_ce(struct
++@@ -140,9 +140,9 @@ static inline int IP6_ECN_set_ce(struct
+  	if (INET_ECN_is_not_ect(ipv6_get_dsfield(iph)))
+  		return 0;
+  
+@@ -706,7 +706,7 @@
+  EXPORT_SYMBOL(xfrm_parse_spi);
+ --- a/net/ipv4/tcp_input.c
+ +++ b/net/ipv4/tcp_input.c
+-@@ -3968,14 +3968,16 @@ static bool tcp_parse_aligned_timestamp(
++@@ -3969,14 +3969,16 @@ static bool tcp_parse_aligned_timestamp(
+  {
+  	const __be32 *ptr = (const __be32 *)(th + 1);
+  
+diff --git a/target/linux/bcm27xx/patches-5.4/950-0030-lan78xx-Enable-LEDs-and-auto-negotiation.patch b/target/linux/bcm27xx/patches-5.4/950-0030-lan78xx-Enable-LEDs-and-auto-negotiation.patch
+index 6799a07d78b4..f5567bdaded0 100644
+--- a/target/linux/bcm27xx/patches-5.4/950-0030-lan78xx-Enable-LEDs-and-auto-negotiation.patch
++++ b/target/linux/bcm27xx/patches-5.4/950-0030-lan78xx-Enable-LEDs-and-auto-negotiation.patch
+@@ -14,7 +14,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+ 
+ --- a/drivers/net/usb/lan78xx.c
+ +++ b/drivers/net/usb/lan78xx.c
+-@@ -2465,6 +2465,11 @@ static int lan78xx_reset(struct lan78xx_
++@@ -2461,6 +2461,11 @@ static int lan78xx_reset(struct lan78xx_
+  	int ret = 0;
+  	unsigned long timeout;
+  	u8 sig;
+@@ -26,7 +26,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+  
+  	ret = lan78xx_read_reg(dev, HW_CFG, &buf);
+  	buf |= HW_CFG_LRST_;
+-@@ -2518,6 +2523,9 @@ static int lan78xx_reset(struct lan78xx_
++@@ -2514,6 +2519,9 @@ static int lan78xx_reset(struct lan78xx_
+  
+  	ret = lan78xx_read_reg(dev, HW_CFG, &buf);
+  	buf |= HW_CFG_MEF_;
+@@ -36,7 +36,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+  	ret = lan78xx_write_reg(dev, HW_CFG, buf);
+  
+  	ret = lan78xx_read_reg(dev, USB_CFG0, &buf);
+-@@ -2573,6 +2581,9 @@ static int lan78xx_reset(struct lan78xx_
++@@ -2569,6 +2577,9 @@ static int lan78xx_reset(struct lan78xx_
+  			buf |= MAC_CR_AUTO_DUPLEX_ | MAC_CR_AUTO_SPEED_;
+  		}
+  	}
+diff --git a/target/linux/bcm27xx/patches-5.4/950-0111-lan78xx-Read-initial-EEE-status-from-DT.patch b/target/linux/bcm27xx/patches-5.4/950-0111-lan78xx-Read-initial-EEE-status-from-DT.patch
+index 2d5363756807..e4f52577e186 100644
+--- a/target/linux/bcm27xx/patches-5.4/950-0111-lan78xx-Read-initial-EEE-status-from-DT.patch
++++ b/target/linux/bcm27xx/patches-5.4/950-0111-lan78xx-Read-initial-EEE-status-from-DT.patch
+@@ -15,7 +15,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+ 
+ --- a/drivers/net/usb/lan78xx.c
+ +++ b/drivers/net/usb/lan78xx.c
+-@@ -2647,6 +2647,22 @@ static int lan78xx_open(struct net_devic
++@@ -2643,6 +2643,22 @@ static int lan78xx_open(struct net_devic
+  
+  	netif_dbg(dev, ifup, dev->net, "phy initialised successfully");
+  
+diff --git a/target/linux/bcm27xx/patches-5.4/950-0117-net-lan78xx-Disable-TCP-Segmentation-Offload-TSO.patch b/target/linux/bcm27xx/patches-5.4/950-0117-net-lan78xx-Disable-TCP-Segmentation-Offload-TSO.patch
+index be6173c93046..894c3ea7ceec 100644
+--- a/target/linux/bcm27xx/patches-5.4/950-0117-net-lan78xx-Disable-TCP-Segmentation-Offload-TSO.patch
++++ b/target/linux/bcm27xx/patches-5.4/950-0117-net-lan78xx-Disable-TCP-Segmentation-Offload-TSO.patch
+@@ -21,7 +21,7 @@ Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+ 
+ --- a/drivers/net/usb/lan78xx.c
+ +++ b/drivers/net/usb/lan78xx.c
+-@@ -429,6 +429,15 @@ static int msg_level = -1;
++@@ -425,6 +425,15 @@ static int msg_level = -1;
+  module_param(msg_level, int, 0);
+  MODULE_PARM_DESC(msg_level, "Override default message level");
+  
+@@ -37,7 +37,7 @@ Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+  static int lan78xx_read_reg(struct lan78xx_net *dev, u32 index, u32 *data)
+  {
+  	u32 *buf = kmalloc(sizeof(u32), GFP_KERNEL);
+-@@ -2995,8 +3004,14 @@ static int lan78xx_bind(struct lan78xx_n
++@@ -2925,8 +2934,14 @@ static int lan78xx_bind(struct lan78xx_n
+  	if (DEFAULT_RX_CSUM_ENABLE)
+  		dev->net->features |= NETIF_F_RXCSUM;
+  
+diff --git a/target/linux/bcm27xx/patches-5.4/950-0118-lan78xx-Move-enabling-of-EEE-into-PHY-init-code.patch b/target/linux/bcm27xx/patches-5.4/950-0118-lan78xx-Move-enabling-of-EEE-into-PHY-init-code.patch
+index 998c3a82355d..4d46461dd8bd 100644
+--- a/target/linux/bcm27xx/patches-5.4/950-0118-lan78xx-Move-enabling-of-EEE-into-PHY-init-code.patch
++++ b/target/linux/bcm27xx/patches-5.4/950-0118-lan78xx-Move-enabling-of-EEE-into-PHY-init-code.patch
+@@ -16,7 +16,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+ 
+ --- a/drivers/net/usb/lan78xx.c
+ +++ b/drivers/net/usb/lan78xx.c
+-@@ -2179,6 +2179,22 @@ static int lan78xx_phy_init(struct lan78
++@@ -2175,6 +2175,22 @@ static int lan78xx_phy_init(struct lan78
+  	mii_adv_to_linkmode_adv_t(fc, mii_adv);
+  	linkmode_or(phydev->advertising, fc, phydev->advertising);
+  
+@@ -39,7 +39,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+  	if (phydev->mdio.dev.of_node) {
+  		u32 reg;
+  		int len;
+-@@ -2656,22 +2672,6 @@ static int lan78xx_open(struct net_devic
++@@ -2652,22 +2668,6 @@ static int lan78xx_open(struct net_devic
+  
+  	netif_dbg(dev, ifup, dev->net, "phy initialised successfully");
+  
+diff --git a/target/linux/bcm27xx/patches-5.4/950-0132-lan78xx-Debounce-link-events-to-minimize-poll-storm.patch b/target/linux/bcm27xx/patches-5.4/950-0132-lan78xx-Debounce-link-events-to-minimize-poll-storm.patch
+index da43a76bf217..12ff0fdf0c90 100644
+--- a/target/linux/bcm27xx/patches-5.4/950-0132-lan78xx-Debounce-link-events-to-minimize-poll-storm.patch
++++ b/target/linux/bcm27xx/patches-5.4/950-0132-lan78xx-Debounce-link-events-to-minimize-poll-storm.patch
+@@ -13,10 +13,9 @@ See: https://github.com/raspberrypi/linux/issues/2447
+ ---
+  drivers/net/usb/lan78xx.c | 12 +++++++++++-
+  1 file changed, 11 insertions(+), 1 deletion(-)
+-
+ --- a/drivers/net/usb/lan78xx.c
+ +++ b/drivers/net/usb/lan78xx.c
+-@@ -438,6 +438,11 @@ static bool enable_tso;
++@@ -434,6 +434,11 @@ static bool enable_tso;
+  module_param(enable_tso, bool, 0644);
+  MODULE_PARM_DESC(enable_tso, "Enables TCP segmentation offload");
+  
+@@ -28,7 +27,7 @@ See: https://github.com/raspberrypi/linux/issues/2447
+  static int lan78xx_read_reg(struct lan78xx_net *dev, u32 index, u32 *data)
+  {
+  	u32 *buf = kmalloc(sizeof(u32), GFP_KERNEL);
+-@@ -3819,7 +3824,12 @@ static int lan78xx_probe(struct usb_inte
++@@ -3824,7 +3829,12 @@ static int lan78xx_probe(struct usb_inte
+  	dev->pipe_intr = usb_rcvintpipe(dev->udev,
+  					dev->ep_intr->desc.bEndpointAddress &
+  					USB_ENDPOINT_NUMBER_MASK);
+diff --git a/target/linux/bcm27xx/patches-5.4/950-0138-lan78xx-EEE-support-is-now-a-PHY-property.patch b/target/linux/bcm27xx/patches-5.4/950-0138-lan78xx-EEE-support-is-now-a-PHY-property.patch
+index 2c3180fa234b..2778f40a94da 100644
+--- a/target/linux/bcm27xx/patches-5.4/950-0138-lan78xx-EEE-support-is-now-a-PHY-property.patch
++++ b/target/linux/bcm27xx/patches-5.4/950-0138-lan78xx-EEE-support-is-now-a-PHY-property.patch
+@@ -15,7 +15,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+ 
+ --- a/drivers/net/usb/lan78xx.c
+ +++ b/drivers/net/usb/lan78xx.c
+-@@ -2184,7 +2184,7 @@ static int lan78xx_phy_init(struct lan78
++@@ -2180,7 +2180,7 @@ static int lan78xx_phy_init(struct lan78
+  	mii_adv_to_linkmode_adv_t(fc, mii_adv);
+  	linkmode_or(phydev->advertising, fc, phydev->advertising);
+  
+diff --git a/target/linux/bcm27xx/patches-5.4/950-0146-lan78xx-use-default-alignment-for-rx-buffers.patch b/target/linux/bcm27xx/patches-5.4/950-0146-lan78xx-use-default-alignment-for-rx-buffers.patch
+index 8327e4fc3136..1c2daad7644d 100644
+--- a/target/linux/bcm27xx/patches-5.4/950-0146-lan78xx-use-default-alignment-for-rx-buffers.patch
++++ b/target/linux/bcm27xx/patches-5.4/950-0146-lan78xx-use-default-alignment-for-rx-buffers.patch
+@@ -12,7 +12,7 @@ in both dwc_otg and in ipv6 processing.
+ 
+ --- a/drivers/net/usb/lan78xx.c
+ +++ b/drivers/net/usb/lan78xx.c
+-@@ -3239,7 +3239,7 @@ static int rx_submit(struct lan78xx_net
++@@ -3169,7 +3169,7 @@ static int rx_submit(struct lan78xx_net
+  	size_t size = dev->rx_urb_size;
+  	int ret = 0;
+  
+diff --git a/target/linux/bcm27xx/patches-5.4/950-0214-usb-xhci-Show-that-the-VIA-VL805-supports-LPM.patch b/target/linux/bcm27xx/patches-5.4/950-0214-usb-xhci-Show-that-the-VIA-VL805-supports-LPM.patch
+index ee1e3940b3bb..7a1c2991f5ea 100644
+--- a/target/linux/bcm27xx/patches-5.4/950-0214-usb-xhci-Show-that-the-VIA-VL805-supports-LPM.patch
++++ b/target/linux/bcm27xx/patches-5.4/950-0214-usb-xhci-Show-that-the-VIA-VL805-supports-LPM.patch
+@@ -10,7 +10,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+ 
+ --- a/drivers/usb/host/xhci-pci.c
+ +++ b/drivers/usb/host/xhci-pci.c
+-@@ -244,6 +244,10 @@ static void xhci_pci_quirks(struct devic
++@@ -247,6 +247,10 @@ static void xhci_pci_quirks(struct devic
+  			pdev->device == 0x3432)
+  		xhci->quirks |= XHCI_BROKEN_STREAMS;
+  
+@@ -19,5 +19,5 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+ +		xhci->quirks |= XHCI_LPM_SUPPORT;
+ +
+  	if (pdev->vendor == PCI_VENDOR_ID_ASMEDIA &&
+- 			pdev->device == 0x1042)
++ 		pdev->device == PCI_DEVICE_ID_ASMEDIA_1042_XHCI)
+  		xhci->quirks |= XHCI_BROKEN_STREAMS;
+diff --git a/target/linux/bcm27xx/patches-5.4/950-0267-xhci-add-quirk-for-host-controllers-that-don-t-updat.patch b/target/linux/bcm27xx/patches-5.4/950-0267-xhci-add-quirk-for-host-controllers-that-don-t-updat.patch
+index 6dba6fbc5f12..83c86f616832 100644
+--- a/target/linux/bcm27xx/patches-5.4/950-0267-xhci-add-quirk-for-host-controllers-that-don-t-updat.patch
++++ b/target/linux/bcm27xx/patches-5.4/950-0267-xhci-add-quirk-for-host-controllers-that-don-t-updat.patch
+@@ -23,7 +23,7 @@ Signed-off-by: Jonathan Bell <jonathan@raspberrypi.org>
+ 
+ --- a/drivers/usb/host/xhci-pci.c
+ +++ b/drivers/usb/host/xhci-pci.c
+-@@ -245,8 +245,10 @@ static void xhci_pci_quirks(struct devic
++@@ -248,8 +248,10 @@ static void xhci_pci_quirks(struct devic
+  		xhci->quirks |= XHCI_BROKEN_STREAMS;
+  
+  	if (pdev->vendor == PCI_VENDOR_ID_VIA &&
+@@ -34,7 +34,7 @@ Signed-off-by: Jonathan Bell <jonathan@raspberrypi.org>
+ +	}
+  
+  	if (pdev->vendor == PCI_VENDOR_ID_ASMEDIA &&
+- 			pdev->device == 0x1042)
++ 		pdev->device == PCI_DEVICE_ID_ASMEDIA_1042_XHCI)
+ --- a/drivers/usb/host/xhci-ring.c
+ +++ b/drivers/usb/host/xhci-ring.c
+ @@ -527,7 +527,10 @@ void xhci_find_new_dequeue_state(struct
+diff --git a/target/linux/bcm27xx/patches-5.4/950-0283-hid-usb-Add-device-quirks-for-Freeway-Airmouse-T3-an.patch b/target/linux/bcm27xx/patches-5.4/950-0283-hid-usb-Add-device-quirks-for-Freeway-Airmouse-T3-an.patch
+index 26a54c22c9a0..f265beb34e49 100644
+--- a/target/linux/bcm27xx/patches-5.4/950-0283-hid-usb-Add-device-quirks-for-Freeway-Airmouse-T3-an.patch
++++ b/target/linux/bcm27xx/patches-5.4/950-0283-hid-usb-Add-device-quirks-for-Freeway-Airmouse-T3-an.patch
+@@ -33,7 +33,7 @@ Signed-off-by: Jonathan Bell <jonathan@raspberrypi.org>
+  #define USB_VENDOR_ID_BELKIN		0x050d
+  #define USB_DEVICE_ID_FLIP_KVM		0x3201
+  
+-@@ -1234,6 +1237,9 @@
++@@ -1237,6 +1240,9 @@
+  #define USB_VENDOR_ID_XAT	0x2505
+  #define USB_DEVICE_ID_XAT_CSR	0x0220
+  
+@@ -53,7 +53,7 @@ Signed-off-by: Jonathan Bell <jonathan@raspberrypi.org>
+  	{ HID_USB_DEVICE(USB_VENDOR_ID_CHICONY, USB_DEVICE_ID_CHICONY_MULTI_TOUCH), HID_QUIRK_MULTI_INPUT },
+  	{ HID_USB_DEVICE(USB_VENDOR_ID_CHICONY, USB_DEVICE_ID_CHICONY_PIXART_USB_OPTICAL_MOUSE), HID_QUIRK_ALWAYS_POLL },
+  	{ HID_USB_DEVICE(USB_VENDOR_ID_CHICONY, USB_DEVICE_ID_CHICONY_PIXART_USB_OPTICAL_MOUSE2), HID_QUIRK_ALWAYS_POLL },
+-@@ -178,6 +179,7 @@ static const struct hid_device_id hid_qu
++@@ -179,6 +180,7 @@ static const struct hid_device_id hid_qu
+  	{ HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP_LTD2, USB_DEVICE_ID_SMARTJOY_DUAL_PLUS), HID_QUIRK_NOGET | HID_QUIRK_MULTI_INPUT },
+  	{ HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP, USB_DEVICE_ID_QUAD_USB_JOYPAD), HID_QUIRK_NOGET | HID_QUIRK_MULTI_INPUT },
+  	{ HID_USB_DEVICE(USB_VENDOR_ID_XIN_MO, USB_DEVICE_ID_XIN_MO_DUAL_ARCADE), HID_QUIRK_MULTI_INPUT },
+diff --git a/target/linux/bcm53xx/patches-5.4/905-BCM53573-minor-hacks.patch b/target/linux/bcm53xx/patches-5.4/905-BCM53573-minor-hacks.patch
+index e3806b4e7282..3b0a3323af14 100644
+--- a/target/linux/bcm53xx/patches-5.4/905-BCM53573-minor-hacks.patch
++++ b/target/linux/bcm53xx/patches-5.4/905-BCM53573-minor-hacks.patch
+@@ -61,7 +61,7 @@ Signed-off-by: Rafał Miłecki <rafal@milecki.pl>
+  #include <linux/clockchips.h>
+  #include <linux/clocksource.h>
+  #include <linux/interrupt.h>
+-@@ -899,6 +900,16 @@ static void arch_timer_of_configure_rate
++@@ -910,6 +911,16 @@ static void arch_timer_of_configure_rate
+  	if (of_property_read_u32(np, "clock-frequency", &arch_timer_rate))
+  		arch_timer_rate = rate;
+  
+diff --git a/target/linux/bcm63xx/patches-5.4/021-v5.8-mtd-rawnand-brcmnand-improve-hamming-oob-layout.patch b/target/linux/bcm63xx/patches-5.4/021-v5.8-mtd-rawnand-brcmnand-improve-hamming-oob-layout.patch
+index 1df2411035a0..78fa1b39e35b 100644
+--- a/target/linux/bcm63xx/patches-5.4/021-v5.8-mtd-rawnand-brcmnand-improve-hamming-oob-layout.patch
++++ b/target/linux/bcm63xx/patches-5.4/021-v5.8-mtd-rawnand-brcmnand-improve-hamming-oob-layout.patch
+@@ -40,7 +40,7 @@ Link: https://lore.kernel.org/linux-mtd/20200512075733.745374-3-noltari@gmail.co
+ 
+ --- a/drivers/mtd/nand/raw/brcmnand/brcmnand.c
+ +++ b/drivers/mtd/nand/raw/brcmnand/brcmnand.c
+-@@ -1003,33 +1003,30 @@ static int brcmnand_hamming_ooblayout_fr
++@@ -1004,33 +1004,30 @@ static int brcmnand_hamming_ooblayout_fr
+  	struct brcmnand_cfg *cfg = &host->hwcfg;
+  	int sas = cfg->spare_area_size << cfg->sector_size_1k;
+  	int sectors = cfg->page_size / (512 << cfg->sector_size_1k);
+diff --git a/target/linux/bcm63xx/patches-5.4/022-v5.8-mtd-rawnand-brcmnand-correctly-verify-erased-pages.patch b/target/linux/bcm63xx/patches-5.4/022-v5.8-mtd-rawnand-brcmnand-correctly-verify-erased-pages.patch
+deleted file mode 100644
+index e8a9f14881f6..000000000000
+--- a/target/linux/bcm63xx/patches-5.4/022-v5.8-mtd-rawnand-brcmnand-correctly-verify-erased-pages.patch
++++ /dev/null
+@@ -1,63 +0,0 @@
+-From dcb351c03f2fa6a599de1061b174167e03ee312b Mon Sep 17 00:00:00 2001
+-From: =?UTF-8?q?=C3=81lvaro=20Fern=C3=A1ndez=20Rojas?= <noltari@gmail.com>
+-Date: Tue, 12 May 2020 10:24:51 +0200
+-Subject: [PATCH] mtd: rawnand: brcmnand: correctly verify erased pages
+-MIME-Version: 1.0
+-Content-Type: text/plain; charset=UTF-8
+-Content-Transfer-Encoding: 8bit
+-
+-The current code checks that the whole OOB area is erased.
+-This is a problem when JFFS2 cleanmarkers are added to the OOB, since it will
+-fail due to the usable OOB bytes not being 0xff.
+-Correct this by only checking that data and ECC bytes aren't 0xff.
+-
+-Fixes: 02b88eea9f9c ("mtd: brcmnand: Add check for erased page bitflips")
+-Signed-off-by: Álvaro Fernández Rojas <noltari@gmail.com>
+-Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
+-Link: https://lore.kernel.org/linux-mtd/20200512082451.771212-1-noltari@gmail.com
+----
+- drivers/mtd/nand/raw/brcmnand/brcmnand.c | 19 +++++++++++--------
+- 1 file changed, 11 insertions(+), 8 deletions(-)
+-
+---- a/drivers/mtd/nand/raw/brcmnand/brcmnand.c
+-+++ b/drivers/mtd/nand/raw/brcmnand/brcmnand.c
+-@@ -1787,28 +1787,31 @@ static int brcmnand_read_by_pio(struct m
+- static int brcmstb_nand_verify_erased_page(struct mtd_info *mtd,
+- 		  struct nand_chip *chip, void *buf, u64 addr)
+- {
+--	int i, sas;
+--	void *oob = chip->oob_poi;
+-+	struct mtd_oob_region ecc;
+-+	int i;
+- 	int bitflips = 0;
+- 	int page = addr >> chip->page_shift;
+- 	int ret;
+-+	void *ecc_bytes;
+- 	void *ecc_chunk;
+- 
+- 	if (!buf)
+- 		buf = nand_get_data_buf(chip);
+- 
+--	sas = mtd->oobsize / chip->ecc.steps;
+--
+- 	/* read without ecc for verification */
+- 	ret = chip->ecc.read_page_raw(chip, buf, true, page);
+- 	if (ret)
+- 		return ret;
+- 
+--	for (i = 0; i < chip->ecc.steps; i++, oob += sas) {
+-+	for (i = 0; i < chip->ecc.steps; i++) {
+- 		ecc_chunk = buf + chip->ecc.size * i;
+--		ret = nand_check_erased_ecc_chunk(ecc_chunk,
+--						  chip->ecc.size,
+--						  oob, sas, NULL, 0,
+-+
+-+		mtd_ooblayout_ecc(mtd, i, &ecc);
+-+		ecc_bytes = chip->oob_poi + ecc.offset;
+-+
+-+		ret = nand_check_erased_ecc_chunk(ecc_chunk, chip->ecc.size,
+-+						  ecc_bytes, ecc.length,
+-+						  NULL, 0,
+- 						  chip->ecc.strength);
+- 		if (ret < 0)
+- 			return ret;
+diff --git a/target/linux/bcm63xx/patches-5.4/024-v5.8-mtd-rawnand-brcmnand-fix-CS0-layout.patch b/target/linux/bcm63xx/patches-5.4/024-v5.8-mtd-rawnand-brcmnand-fix-CS0-layout.patch
+deleted file mode 100644
+index 0eeefe12de41..000000000000
+--- a/target/linux/bcm63xx/patches-5.4/024-v5.8-mtd-rawnand-brcmnand-fix-CS0-layout.patch
++++ /dev/null
+@@ -1,34 +0,0 @@
+-From 3d3fb3c5be9ce07fa85d8f67fb3922e4613b955b Mon Sep 17 00:00:00 2001
+-From: =?UTF-8?q?=C3=81lvaro=20Fern=C3=A1ndez=20Rojas?= <noltari@gmail.com>
+-Date: Fri, 22 May 2020 14:15:21 +0200
+-Subject: [PATCH] mtd: rawnand: brcmnand: fix CS0 layout
+-MIME-Version: 1.0
+-Content-Type: text/plain; charset=UTF-8
+-Content-Transfer-Encoding: 8bit
+-
+-Only v3.3-v5.0 have a different CS0 layout.
+-Controllers before v3.3 use the same layout for every CS.
+-
+-Fixes: 27c5b17cd1b1 ("mtd: nand: add NAND driver "library" for Broadcom STB NAND controller")
+-Signed-off-by: Álvaro Fernández Rojas <noltari@gmail.com>
+-Acked-by: Florian Fainelli <f.fainelli@gmail.com>
+-Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
+-Link: https://lore.kernel.org/linux-mtd/20200522121524.4161539-3-noltari@gmail.com
+----
+- drivers/mtd/nand/raw/brcmnand/brcmnand.c | 5 +++--
+- 1 file changed, 3 insertions(+), 2 deletions(-)
+-
+---- a/drivers/mtd/nand/raw/brcmnand/brcmnand.c
+-+++ b/drivers/mtd/nand/raw/brcmnand/brcmnand.c
+-@@ -537,8 +537,9 @@ static int brcmnand_revision_init(struct
+- 	} else {
+- 		ctrl->cs_offsets = brcmnand_cs_offsets;
+- 
+--		/* v5.0 and earlier has a different CS0 offset layout */
+--		if (ctrl->nand_version <= 0x0500)
+-+		/* v3.3-5.0 have a different CS0 offset layout */
+-+		if (ctrl->nand_version >= 0x0303 &&
+-+		    ctrl->nand_version <= 0x0500)
+- 			ctrl->cs0_offsets = brcmnand_cs_offsets_cs0;
+- 	}
+- 
+diff --git a/target/linux/generic/backport-5.4/070-v5.5-MIPS-BPF-Restore-MIPS32-cBPF-JIT.patch b/target/linux/generic/backport-5.4/070-v5.5-MIPS-BPF-Restore-MIPS32-cBPF-JIT.patch
+index 793c8be24a71..027d0253a33d 100644
+--- a/target/linux/generic/backport-5.4/070-v5.5-MIPS-BPF-Restore-MIPS32-cBPF-JIT.patch
++++ b/target/linux/generic/backport-5.4/070-v5.5-MIPS-BPF-Restore-MIPS32-cBPF-JIT.patch
+@@ -69,8 +69,6 @@ Cc: linux-kernel@vger.kernel.org
+  create mode 100644 arch/mips/net/bpf_jit.c
+  create mode 100644 arch/mips/net/bpf_jit_asm.S
+ 
+-diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
+-index e5c2d47608fe..33674cdc3aa8 100644
+ --- a/arch/mips/Kconfig
+ +++ b/arch/mips/Kconfig
+ @@ -46,6 +46,7 @@ config MIPS
+@@ -81,8 +79,6 @@ index e5c2d47608fe..33674cdc3aa8 100644
+  	select HAVE_EBPF_JIT if 64BIT && !CPU_MICROMIPS && TARGET_ISA_REV >= 2
+  	select HAVE_CONTEXT_TRACKING
+  	select HAVE_COPY_THREAD_TLS
+-diff --git a/arch/mips/net/Makefile b/arch/mips/net/Makefile
+-index 2d03af7d6b19..d55912349039 100644
+ --- a/arch/mips/net/Makefile
+ +++ b/arch/mips/net/Makefile
+ @@ -1,4 +1,5 @@
+@@ -91,9 +87,6 @@ index 2d03af7d6b19..d55912349039 100644
+  
+ +obj-$(CONFIG_MIPS_CBPF_JIT) += bpf_jit.o bpf_jit_asm.o
+  obj-$(CONFIG_MIPS_EBPF_JIT) += ebpf_jit.o
+-diff --git a/arch/mips/net/bpf_jit.c b/arch/mips/net/bpf_jit.c
+-new file mode 100644
+-index 000000000000..3a0e34f4e615
+ --- /dev/null
+ +++ b/arch/mips/net/bpf_jit.c
+ @@ -0,0 +1,1270 @@
+@@ -1367,9 +1360,6 @@ index 000000000000..3a0e34f4e615
+ +
+ +	bpf_prog_unlock_free(fp);
+ +}
+-diff --git a/arch/mips/net/bpf_jit_asm.S b/arch/mips/net/bpf_jit_asm.S
+-new file mode 100644
+-index 000000000000..57154c5883b6
+ --- /dev/null
+ +++ b/arch/mips/net/bpf_jit_asm.S
+ @@ -0,0 +1,285 @@
+@@ -1658,6 +1648,3 @@ index 000000000000..57154c5883b6
+ +fault:
+ +	jr	$r_ra
+ +	 addiu $r_ret, zero, 1
+--- 
+-2.17.1
+-
+diff --git a/target/linux/generic/backport-5.4/395-v5.8-net-sch_cake-Take-advantage-of-skb-hash-where-appropriate.patch b/target/linux/generic/backport-5.4/395-v5.8-net-sch_cake-Take-advantage-of-skb-hash-where-appropriate.patch
+index 12962135d05e..e69de29bb2d1 100644
+--- a/target/linux/generic/backport-5.4/395-v5.8-net-sch_cake-Take-advantage-of-skb-hash-where-appropriate.patch
++++ b/target/linux/generic/backport-5.4/395-v5.8-net-sch_cake-Take-advantage-of-skb-hash-where-appropriate.patch
+@@ -1,170 +0,0 @@
+-From b0c19ed6088ab41dd2a727b60594b7297c15d6ce Mon Sep 17 00:00:00 2001
+-From: =?UTF-8?q?Toke=20H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
+-Date: Fri, 29 May 2020 14:43:44 +0200
+-Subject: [PATCH] sch_cake: Take advantage of skb->hash where appropriate
+-MIME-Version: 1.0
+-Content-Type: text/plain; charset=UTF-8
+-Content-Transfer-Encoding: 8bit
+-
+-While the other fq-based qdiscs take advantage of skb->hash and doesn't
+-recompute it if it is already set, sch_cake does not.
+-
+-This was a deliberate choice because sch_cake hashes various parts of the
+-packet header to support its advanced flow isolation modes. However,
+-foregoing the use of skb->hash entirely loses a few important benefits:
+-
+-- When skb->hash is set by hardware, a few CPU cycles can be saved by not
+-  hashing again in software.
+-
+-- Tunnel encapsulations will generally preserve the value of skb->hash from
+-  before the encapsulation, which allows flow-based qdiscs to distinguish
+-  between flows even though the outer packet header no longer has flow
+-  information.
+-
+-It turns out that we can preserve these desirable properties in many cases,
+-while still supporting the advanced flow isolation properties of sch_cake.
+-This patch does so by reusing the skb->hash value as the flow_hash part of
+-the hashing procedure in cake_hash() only in the following conditions:
+-
+-- If the skb->hash is marked as covering the flow headers (skb->l4_hash is
+-  set)
+-
+-AND
+-
+-- NAT header rewriting is either disabled, or did not change any values
+-  used for hashing. The latter is important to match local-origin packets
+-  such as those of a tunnel endpoint.
+-
+-The immediate motivation for fixing this was the recent patch to WireGuard
+-to preserve the skb->hash on encapsulation. As such, this is also what I
+-tested against; with this patch, added latency under load for competing
+-flows drops from ~8 ms to sub-1ms on an RRUL test over a WireGuard tunnel
+-going through a virtual link shaped to 1Gbps using sch_cake. This matches
+-the results we saw with a similar setup using sch_fq_codel when testing the
+-WireGuard patch.
+-
+-Fixes: 046f6fd5daef ("sched: Add Common Applications Kept Enhanced (cake) qdisc")
+-Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
+-Signed-off-by: David S. Miller <davem@davemloft.net>
+-Signed-off-by: Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
+----
+- net/sched/sch_cake.c | 65 ++++++++++++++++++++++++++++++++++----------
+- 1 file changed, 51 insertions(+), 14 deletions(-)
+-
+---- a/net/sched/sch_cake.c
+-+++ b/net/sched/sch_cake.c
+-@@ -584,26 +584,48 @@ static bool cobalt_should_drop(struct co
+- 	return drop;
+- }
+- 
+--static void cake_update_flowkeys(struct flow_keys *keys,
+-+static bool cake_update_flowkeys(struct flow_keys *keys,
+- 				 const struct sk_buff *skb)
+- {
+- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+- 	struct nf_conntrack_tuple tuple = {};
+--	bool rev = !skb->_nfct;
+-+	bool rev = !skb->_nfct, upd = false;
+-+	__be32 ip;
+- 
+- 	if (tc_skb_protocol(skb) != htons(ETH_P_IP))
+--		return;
+-+		return false;
+- 
+- 	if (!nf_ct_get_tuple_skb(&tuple, skb))
+--		return;
+-+		return false;
+- 
+--	keys->addrs.v4addrs.src = rev ? tuple.dst.u3.ip : tuple.src.u3.ip;
+--	keys->addrs.v4addrs.dst = rev ? tuple.src.u3.ip : tuple.dst.u3.ip;
+-+	ip = rev ? tuple.dst.u3.ip : tuple.src.u3.ip;
+-+	if (ip != keys->addrs.v4addrs.src) {
+-+		keys->addrs.v4addrs.src = ip;
+-+		upd = true;
+-+	}
+-+	ip = rev ? tuple.src.u3.ip : tuple.dst.u3.ip;
+-+	if (ip != keys->addrs.v4addrs.dst) {
+-+		keys->addrs.v4addrs.dst = ip;
+-+		upd = true;
+-+	}
+- 
+- 	if (keys->ports.ports) {
+--		keys->ports.src = rev ? tuple.dst.u.all : tuple.src.u.all;
+--		keys->ports.dst = rev ? tuple.src.u.all : tuple.dst.u.all;
+-+		__be16 port;
+-+
+-+		port = rev ? tuple.dst.u.all : tuple.src.u.all;
+-+		if (port != keys->ports.src) {
+-+			keys->ports.src = port;
+-+			upd = true;
+-+		}
+-+		port = rev ? tuple.src.u.all : tuple.dst.u.all;
+-+		if (port != keys->ports.dst) {
+-+			port = keys->ports.dst;
+-+			upd = true;
+-+		}
+- 	}
+-+	return upd;
+-+#else
+-+	return false;
+- #endif
+- }
+- 
+-@@ -624,23 +646,36 @@ static bool cake_ddst(int flow_mode)
+- static u32 cake_hash(struct cake_tin_data *q, const struct sk_buff *skb,
+- 		     int flow_mode, u16 flow_override, u16 host_override)
+- {
+-+	bool hash_flows = (!flow_override && !!(flow_mode & CAKE_FLOW_FLOWS));
+-+	bool hash_hosts = (!host_override && !!(flow_mode & CAKE_FLOW_HOSTS));
+-+	bool nat_enabled = !!(flow_mode & CAKE_FLOW_NAT_FLAG);
+- 	u32 flow_hash = 0, srchost_hash = 0, dsthost_hash = 0;
+- 	u16 reduced_hash, srchost_idx, dsthost_idx;
+- 	struct flow_keys keys, host_keys;
+-+	bool use_skbhash = skb->l4_hash;
+- 
+- 	if (unlikely(flow_mode == CAKE_FLOW_NONE))
+- 		return 0;
+- 
+--	/* If both overrides are set we can skip packet dissection entirely */
+--	if ((flow_override || !(flow_mode & CAKE_FLOW_FLOWS)) &&
+--	    (host_override || !(flow_mode & CAKE_FLOW_HOSTS)))
+-+	/* If both overrides are set, or we can use the SKB hash and nat mode is
+-+	 * disabled, we can skip packet dissection entirely. If nat mode is
+-+	 * enabled there's another check below after doing the conntrack lookup.
+-+	 */
+-+	if ((!hash_flows || (use_skbhash && !nat_enabled)) && !hash_hosts)
+- 		goto skip_hash;
+- 
+- 	skb_flow_dissect_flow_keys(skb, &keys,
+- 				   FLOW_DISSECTOR_F_STOP_AT_FLOW_LABEL);
+- 
+--	if (flow_mode & CAKE_FLOW_NAT_FLAG)
+--		cake_update_flowkeys(&keys, skb);
+-+	/* Don't use the SKB hash if we change the lookup keys from conntrack */
+-+	if (nat_enabled && cake_update_flowkeys(&keys, skb))
+-+		use_skbhash = false;
+-+
+-+	/* If we can still use the SKB hash and don't need the host hash, we can
+-+	 * skip the rest of the hashing procedure
+-+	 */
+-+	if (use_skbhash && !hash_hosts)
+-+		goto skip_hash;
+- 
+- 	/* flow_hash_from_keys() sorts the addresses by value, so we have
+- 	 * to preserve their order in a separate data structure to treat
+-@@ -679,12 +714,14 @@ static u32 cake_hash(struct cake_tin_dat
+- 	/* This *must* be after the above switch, since as a
+- 	 * side-effect it sorts the src and dst addresses.
+- 	 */
+--	if (flow_mode & CAKE_FLOW_FLOWS)
+-+	if (hash_flows && !use_skbhash)
+- 		flow_hash = flow_hash_from_keys(&keys);
+- 
+- skip_hash:
+- 	if (flow_override)
+- 		flow_hash = flow_override - 1;
+-+	else if (use_skbhash)
+-+		flow_hash = skb->hash;
+- 	if (host_override) {
+- 		dsthost_hash = host_override - 1;
+- 		srchost_hash = host_override - 1;
+diff --git a/target/linux/generic/backport-5.4/716-v5.4-net-sfp-move-fwnode-parsing-into-sfp-bus-layer.patch b/target/linux/generic/backport-5.4/716-v5.4-net-sfp-move-fwnode-parsing-into-sfp-bus-layer.patch
+index 858c584c056b..92fe22487316 100644
+--- a/target/linux/generic/backport-5.4/716-v5.4-net-sfp-move-fwnode-parsing-into-sfp-bus-layer.patch
++++ b/target/linux/generic/backport-5.4/716-v5.4-net-sfp-move-fwnode-parsing-into-sfp-bus-layer.patch
+@@ -59,7 +59,7 @@ Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+  #include <linux/rtnetlink.h>
+  #include <linux/slab.h>
+  
+-@@ -445,45 +446,63 @@ static void sfp_upstream_clear(struct sf
++@@ -520,45 +521,63 @@ static void sfp_upstream_clear(struct sf
+  }
+  
+  /**
+diff --git a/target/linux/generic/backport-5.4/717-v5.5-net-sfp-rework-upstream-interface.patch b/target/linux/generic/backport-5.4/717-v5.5-net-sfp-rework-upstream-interface.patch
+index f3454851bfe9..9175f2557a38 100644
+--- a/target/linux/generic/backport-5.4/717-v5.5-net-sfp-rework-upstream-interface.patch
++++ b/target/linux/generic/backport-5.4/717-v5.5-net-sfp-rework-upstream-interface.patch
+@@ -53,7 +53,7 @@ Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+  
+ --- a/drivers/net/phy/sfp-bus.c
+ +++ b/drivers/net/phy/sfp-bus.c
+-@@ -329,10 +329,19 @@ static void sfp_bus_release(struct kref
++@@ -404,10 +404,19 @@ static void sfp_bus_release(struct kref
+  	kfree(bus);
+  }
+  
+@@ -75,7 +75,7 @@ Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+  
+  static int sfp_register_bus(struct sfp_bus *bus)
+  {
+-@@ -348,11 +357,11 @@ static int sfp_register_bus(struct sfp_b
++@@ -423,11 +432,11 @@ static int sfp_register_bus(struct sfp_b
+  				return ret;
+  		}
+  	}
+@@ -88,7 +88,7 @@ Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+  	return 0;
+  }
+  
+-@@ -446,13 +455,12 @@ static void sfp_upstream_clear(struct sf
++@@ -521,13 +530,12 @@ static void sfp_upstream_clear(struct sf
+  }
+  
+  /**
+@@ -106,7 +106,7 @@ Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+   *
+   * Returns: on success, a pointer to the sfp_bus structure,
+   *	    %NULL if no SFP is specified,
+-@@ -462,9 +470,7 @@ static void sfp_upstream_clear(struct sf
++@@ -537,9 +545,7 @@ static void sfp_upstream_clear(struct sf
+   * 	        %-ENOMEM if we failed to allocate the bus.
+   *		an error from the upstream's connect_phy() method.
+   */
+@@ -117,7 +117,7 @@ Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+  {
+  	struct fwnode_reference_args ref;
+  	struct sfp_bus *bus;
+-@@ -482,7 +488,39 @@ struct sfp_bus *sfp_register_upstream_no
++@@ -557,7 +563,39 @@ struct sfp_bus *sfp_register_upstream_no
+  	if (!bus)
+  		return ERR_PTR(-ENOMEM);
+  
+@@ -157,7 +157,7 @@ Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+  	bus->upstream_ops = ops;
+  	bus->upstream = upstream;
+  
+-@@ -495,33 +533,33 @@ struct sfp_bus *sfp_register_upstream_no
++@@ -570,33 +608,33 @@ struct sfp_bus *sfp_register_upstream_no
+  	}
+  	rtnl_unlock();
+  
+diff --git a/target/linux/generic/backport-5.4/718-v5.5-net-sfp-fix-sfp_bus_put-kernel-documentation.patch b/target/linux/generic/backport-5.4/718-v5.5-net-sfp-fix-sfp_bus_put-kernel-documentation.patch
+index 13dc5216f967..c7bfd8a30490 100644
+--- a/target/linux/generic/backport-5.4/718-v5.5-net-sfp-fix-sfp_bus_put-kernel-documentation.patch
++++ b/target/linux/generic/backport-5.4/718-v5.5-net-sfp-fix-sfp_bus_put-kernel-documentation.patch
+@@ -16,7 +16,7 @@ Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+ 
+ --- a/drivers/net/phy/sfp-bus.c
+ +++ b/drivers/net/phy/sfp-bus.c
+-@@ -331,7 +331,7 @@ static void sfp_bus_release(struct kref
++@@ -406,7 +406,7 @@ static void sfp_bus_release(struct kref
+  
+  /**
+   * sfp_bus_put() - put a reference on the &struct sfp_bus
+diff --git a/target/linux/generic/backport-5.4/742-v5.5-net-sfp-add-support-for-module-quirks.patch b/target/linux/generic/backport-5.4/742-v5.5-net-sfp-add-support-for-module-quirks.patch
+deleted file mode 100644
+index 46c56a655aca..000000000000
+--- a/target/linux/generic/backport-5.4/742-v5.5-net-sfp-add-support-for-module-quirks.patch
++++ /dev/null
+@@ -1,111 +0,0 @@
+-From 8df5dd55cef48c0769379e04dbc085a899b106d4 Mon Sep 17 00:00:00 2001
+-From: Russell King <rmk+kernel@armlinux.org.uk>
+-Date: Fri, 8 Mar 2019 14:02:25 +0000
+-Subject: [PATCH 640/660] net: sfp: add support for module quirks
+-
+-Add support for applying module quirks to the list of supported
+-ethtool link modes.
+-
+-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+----
+- drivers/net/phy/sfp-bus.c | 54 +++++++++++++++++++++++++++++++++++++++
+- 1 file changed, 54 insertions(+)
+-
+---- a/drivers/net/phy/sfp-bus.c
+-+++ b/drivers/net/phy/sfp-bus.c
+-@@ -10,6 +10,12 @@
+- 
+- #include "sfp.h"
+- 
+-+struct sfp_quirk {
+-+	const char *vendor;
+-+	const char *part;
+-+	void (*modes)(const struct sfp_eeprom_id *id, unsigned long *modes);
+-+};
+-+
+- /**
+-  * struct sfp_bus - internal representation of a sfp bus
+-  */
+-@@ -22,6 +28,7 @@ struct sfp_bus {
+- 	const struct sfp_socket_ops *socket_ops;
+- 	struct device *sfp_dev;
+- 	struct sfp *sfp;
+-+	const struct sfp_quirk *sfp_quirk;
+- 
+- 	const struct sfp_upstream_ops *upstream_ops;
+- 	void *upstream;
+-@@ -31,6 +38,46 @@ struct sfp_bus {
+- 	bool started;
+- };
+- 
+-+static const struct sfp_quirk sfp_quirks[] = {
+-+};
+-+
+-+static size_t sfp_strlen(const char *str, size_t maxlen)
+-+{
+-+	size_t size, i;
+-+
+-+	/* Trailing characters should be filled with space chars */
+-+	for (i = 0, size = 0; i < maxlen; i++)
+-+		if (str[i] != ' ')
+-+			size = i + 1;
+-+
+-+	return size;
+-+}
+-+
+-+static bool sfp_match(const char *qs, const char *str, size_t len)
+-+{
+-+	if (!qs)
+-+		return true;
+-+	if (strlen(qs) != len)
+-+		return false;
+-+	return !strncmp(qs, str, len);
+-+}
+-+
+-+static const struct sfp_quirk *sfp_lookup_quirk(const struct sfp_eeprom_id *id)
+-+{
+-+	const struct sfp_quirk *q;
+-+	unsigned int i;
+-+	size_t vs, ps;
+-+
+-+	vs = sfp_strlen(id->base.vendor_name, ARRAY_SIZE(id->base.vendor_name));
+-+	ps = sfp_strlen(id->base.vendor_pn, ARRAY_SIZE(id->base.vendor_pn));
+-+
+-+	for (i = 0, q = sfp_quirks; i < ARRAY_SIZE(sfp_quirks); i++, q++)
+-+		if (sfp_match(q->vendor, id->base.vendor_name, vs) &&
+-+		    sfp_match(q->part, id->base.vendor_pn, ps))
+-+			return q;
+-+
+-+	return NULL;
+-+}
+- /**
+-  * sfp_parse_port() - Parse the EEPROM base ID, setting the port type
+-  * @bus: a pointer to the &struct sfp_bus structure for the sfp module
+-@@ -234,6 +281,9 @@ void sfp_parse_support(struct sfp_bus *b
+- 			phylink_set(modes, 1000baseX_Full);
+- 	}
+- 
+-+	if (bus->sfp_quirk)
+-+		bus->sfp_quirk->modes(id, modes);
+-+
+- 	bitmap_or(support, support, modes, __ETHTOOL_LINK_MODE_MASK_NBITS);
+- 
+- 	phylink_set(support, Autoneg);
+-@@ -610,6 +660,8 @@ int sfp_module_insert(struct sfp_bus *bu
+- 	const struct sfp_upstream_ops *ops = sfp_get_upstream_ops(bus);
+- 	int ret = 0;
+- 
+-+	bus->sfp_quirk = sfp_lookup_quirk(id);
+-+
+- 	if (ops && ops->module_insert)
+- 		ret = ops->module_insert(bus->upstream, id);
+- 
+-@@ -623,6 +675,8 @@ void sfp_module_remove(struct sfp_bus *b
+- 
+- 	if (ops && ops->module_remove)
+- 		ops->module_remove(bus->upstream);
+-+
+-+	bus->sfp_quirk = NULL;
+- }
+- EXPORT_SYMBOL_GPL(sfp_module_remove);
+- 
+diff --git a/target/linux/generic/backport-5.4/743-v5.5-net-sfp-add-some-quirks-for-GPON-modules.patch b/target/linux/generic/backport-5.4/743-v5.5-net-sfp-add-some-quirks-for-GPON-modules.patch
+deleted file mode 100644
+index 0b085ff09471..000000000000
+--- a/target/linux/generic/backport-5.4/743-v5.5-net-sfp-add-some-quirks-for-GPON-modules.patch
++++ /dev/null
+@@ -1,52 +0,0 @@
+-From ecaa542cfed078dbc356dadff0bad4b6a8e704a0 Mon Sep 17 00:00:00 2001
+-From: Russell King <rmk+kernel@armlinux.org.uk>
+-Date: Fri, 17 May 2019 10:14:45 +0100
+-Subject: [PATCH 641/660] net: sfp: add some quirks for GPON modules
+-
+-Marc Micalizzi reports that Huawei MA5671A and Alcatel/Lucent G-010S-P
+-modules are capable of 2500base-X, but incorrectly report their
+-capabilities in the EEPROM.  It seems rather common that GPON modules
+-mis-report.
+-
+-Let's fix these modules by adding some quirks.
+-
+-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+----
+- drivers/net/phy/sfp-bus.c | 25 +++++++++++++++++++++++++
+- 1 file changed, 25 insertions(+)
+-
+---- a/drivers/net/phy/sfp-bus.c
+-+++ b/drivers/net/phy/sfp-bus.c
+-@@ -38,7 +38,32 @@ struct sfp_bus {
+- 	bool started;
+- };
+- 
+-+static void sfp_quirk_2500basex(const struct sfp_eeprom_id *id,
+-+				unsigned long *modes)
+-+{
+-+	phylink_set(modes, 2500baseX_Full);
+-+}
+-+
+- static const struct sfp_quirk sfp_quirks[] = {
+-+	{
+-+		// Alcatel Lucent G-010S-P can operate at 2500base-X, but
+-+		// incorrectly report 2500MBd NRZ in their EEPROM
+-+		.vendor = "ALCATELLUCENT",
+-+		.part = "G010SP",
+-+		.modes = sfp_quirk_2500basex,
+-+	}, {
+-+		// Alcatel Lucent G-010S-A can operate at 2500base-X, but
+-+		// report 3.2GBd NRZ in their EEPROM
+-+		.vendor = "ALCATELLUCENT",
+-+		.part = "3FE46541AA",
+-+		.modes = sfp_quirk_2500basex,
+-+	}, {
+-+		// Huawei MA5671A can operate at 2500base-X, but report 1.2GBd
+-+		// NRZ in their EEPROM
+-+		.vendor = "HUAWEI",
+-+		.part = "MA5671A",
+-+		.modes = sfp_quirk_2500basex,
+-+	},
+- };
+- 
+- static size_t sfp_strlen(const char *str, size_t maxlen)
+diff --git a/target/linux/generic/hack-5.4/221-module_exports.patch b/target/linux/generic/hack-5.4/221-module_exports.patch
+index 00802bb401df..f3d6c5543703 100644
+--- a/target/linux/generic/hack-5.4/221-module_exports.patch
++++ b/target/linux/generic/hack-5.4/221-module_exports.patch
+@@ -30,7 +30,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  /* Align . to a 8 byte boundary equals to maximum function alignment. */
+  #define ALIGN_FUNCTION()  . = ALIGN(8)
+  
+-@@ -405,14 +415,14 @@
++@@ -406,14 +416,14 @@
+  	/* Kernel symbol table: Normal symbols */			\
+  	__ksymtab         : AT(ADDR(__ksymtab) - LOAD_OFFSET) {		\
+  		__start___ksymtab = .;					\
+@@ -47,7 +47,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  		__stop___ksymtab_gpl = .;				\
+  	}								\
+  									\
+-@@ -474,7 +484,7 @@
++@@ -475,7 +485,7 @@
+  									\
+  	/* Kernel symbol table: strings */				\
+          __ksymtab_strings : AT(ADDR(__ksymtab_strings) - LOAD_OFFSET) {	\
+@@ -56,7 +56,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  	}								\
+  									\
+  	/* __*init sections */						\
+-@@ -881,6 +891,8 @@
++@@ -884,6 +894,8 @@
+  	EXIT_TEXT							\
+  	EXIT_DATA							\
+  	EXIT_CALL							\
+diff --git a/target/linux/generic/hack-5.4/301-mips_image_cmdline_hack.patch b/target/linux/generic/hack-5.4/301-mips_image_cmdline_hack.patch
+index a6daf1bdbf35..4af9e5a25768 100644
+--- a/target/linux/generic/hack-5.4/301-mips_image_cmdline_hack.patch
++++ b/target/linux/generic/hack-5.4/301-mips_image_cmdline_hack.patch
+@@ -10,7 +10,7 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
+ 
+ --- a/arch/mips/Kconfig
+ +++ b/arch/mips/Kconfig
+-@@ -1156,6 +1156,10 @@ config SYNC_R4K
++@@ -1157,6 +1157,10 @@ config SYNC_R4K
+  config MIPS_MACHINE
+  	def_bool n
+  
+diff --git a/target/linux/generic/hack-5.4/641-sch_cake-fix-IP-protocol-handling-in-the-presence-of.patch b/target/linux/generic/hack-5.4/641-sch_cake-fix-IP-protocol-handling-in-the-presence-of.patch
+deleted file mode 100644
+index e651743c1db6..000000000000
+--- a/target/linux/generic/hack-5.4/641-sch_cake-fix-IP-protocol-handling-in-the-presence-of.patch
++++ /dev/null
+@@ -1,114 +0,0 @@
+-From a00590d570212c3c633bd463cef8ec7377cc7993 Mon Sep 17 00:00:00 2001
+-From: Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
+-Date: Tue, 30 Jun 2020 12:07:44 +0100
+-Subject: [PATCH] sch_cake: fix IP protocol handling in the presence of VLAN
+- tags
+-MIME-Version: 1.0
+-Content-Type: text/plain; charset=UTF-8
+-Content-Transfer-Encoding: 8bit
+-
+-From: Ilya Ponetayev <i.ponetaev@ndmsystems.com>
+-
+-CAKE was using the return value of tc_skb_protocol() and expecting it to be
+-the IP protocol type. This can fail in the presence of QinQ VLAN tags,
+-making CAKE unable to handle ECN marking and diffserv parsing in this case.
+-Fix this by implementing our own version of tc_skb_protocol(), which will
+-use skb->protocol directly, but also parse and skip over any VLAN tags and
+-return the inner protocol number instead.
+-
+-Also fix CE marking by implementing a version of INET_ECN_set_ce() that
+-uses the same parsing routine.
+-
+-Fixes: ea82511518f4 ("sch_cake: Add NAT awareness to packet classifier")
+-Fixes: b2100cc56fca ("sch_cake: Use tc_skb_protocol() helper for getting packet protocol")
+-Fixes: 046f6fd5daef ("sched: Add Common Applications Kept Enhanced (cake) qdisc")
+-Signed-off-by: Ilya Ponetayev <i.ponetaev@ndmsystems.com>
+-[ squash original two patches, rewrite commit message ]
+-Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
+-Signed-off-by: Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
+----
+- net/sched/sch_cake.c | 52 +++++++++++++++++++++++++++++++++++++++++---
+- 1 file changed, 49 insertions(+), 3 deletions(-)
+-
+---- a/net/sched/sch_cake.c
+-+++ b/net/sched/sch_cake.c
+-@@ -497,6 +497,52 @@ static bool cobalt_queue_empty(struct co
+- 	return down;
+- }
+- 
+-+static __be16 cake_skb_proto(const struct sk_buff *skb)
+-+{
+-+	unsigned int offset = skb_mac_offset(skb) + sizeof(struct ethhdr);
+-+	__be16 proto = skb->protocol;
+-+	struct vlan_hdr vhdr, *vh;
+-+
+-+	while (proto == htons(ETH_P_8021Q) || proto == htons(ETH_P_8021AD)) {
+-+		vh = skb_header_pointer(skb, offset, sizeof(vhdr), &vhdr);
+-+		if (!vh)
+-+			break;
+-+
+-+		proto = vh->h_vlan_encapsulated_proto;
+-+		offset += sizeof(vhdr);
+-+	}
+-+
+-+	return proto;
+-+}
+-+
+-+static int cake_set_ce(struct sk_buff *skb)
+-+{
+-+	int wlen = skb_network_offset(skb);
+-+
+-+	switch (cake_skb_proto(skb)) {
+-+	case htons(ETH_P_IP):
+-+		wlen += sizeof(struct iphdr);
+-+		if (!pskb_may_pull(skb, wlen) ||
+-+		    skb_try_make_writable(skb, wlen))
+-+			return 0;
+-+
+-+		return IP_ECN_set_ce(ip_hdr(skb));
+-+
+-+	case htons(ETH_P_IPV6):
+-+		wlen += sizeof(struct ipv6hdr);
+-+		if (!pskb_may_pull(skb, wlen) ||
+-+		    skb_try_make_writable(skb, wlen))
+-+			return 0;
+-+
+-+		return IP6_ECN_set_ce(skb, ipv6_hdr(skb));
+-+
+-+	default:
+-+		return 0;
+-+	}
+-+
+-+	return 0;
+-+}
+-+
+- /* Call this with a freshly dequeued packet for possible congestion marking.
+-  * Returns true as an instruction to drop the packet, false for delivery.
+-  */
+-@@ -549,7 +595,7 @@ static bool cobalt_should_drop(struct co
+- 
+- 	if (next_due && vars->dropping) {
+- 		/* Use ECN mark if possible, otherwise drop */
+--		drop = !(vars->ecn_marked = INET_ECN_set_ce(skb));
+-+		drop = !(vars->ecn_marked = cake_set_ce(skb));
+- 
+- 		vars->count++;
+- 		if (!vars->count)
+-@@ -592,7 +638,7 @@ static bool cake_update_flowkeys(struct
+- 	bool rev = !skb->_nfct, upd = false;
+- 	__be32 ip;
+- 
+--	if (tc_skb_protocol(skb) != htons(ETH_P_IP))
+-+	if (cake_skb_proto(skb) != htons(ETH_P_IP))
+- 		return false;
+- 
+- 	if (!nf_ct_get_tuple_skb(&tuple, skb))
+-@@ -1557,7 +1603,7 @@ static u8 cake_handle_diffserv(struct sk
+- 	u16 *buf, buf_;
+- 	u8 dscp;
+- 
+--	switch (tc_skb_protocol(skb)) {
+-+	switch (cake_skb_proto(skb)) {
+- 	case htons(ETH_P_IP):
+- 		buf = skb_header_pointer(skb, offset, sizeof(buf_), &buf_);
+- 		if (unlikely(!buf))
+diff --git a/target/linux/generic/hack-5.4/904-debloat_dma_buf.patch b/target/linux/generic/hack-5.4/904-debloat_dma_buf.patch
+index 9c7c3c2c24da..1b103d5e0088 100644
+--- a/target/linux/generic/hack-5.4/904-debloat_dma_buf.patch
++++ b/target/linux/generic/hack-5.4/904-debloat_dma_buf.patch
+@@ -45,7 +45,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  	selftest.o \
+ --- a/drivers/dma-buf/dma-buf.c
+ +++ b/drivers/dma-buf/dma-buf.c
+-@@ -1295,4 +1295,5 @@ static void __exit dma_buf_deinit(void)
++@@ -1298,4 +1298,5 @@ static void __exit dma_buf_deinit(void)
+  	dma_buf_uninit_debugfs();
+  	kern_unmount(dma_buf_mnt);
+  }
+diff --git a/target/linux/generic/pending-5.4/300-mips_expose_boot_raw.patch b/target/linux/generic/pending-5.4/300-mips_expose_boot_raw.patch
+index f6fdabe60816..50029a4551d4 100644
+--- a/target/linux/generic/pending-5.4/300-mips_expose_boot_raw.patch
++++ b/target/linux/generic/pending-5.4/300-mips_expose_boot_raw.patch
+@@ -9,7 +9,7 @@ Acked-by: Rob Landley <rob@landley.net>
+ ---
+ --- a/arch/mips/Kconfig
+ +++ b/arch/mips/Kconfig
+-@@ -1066,9 +1066,6 @@ config FW_ARC
++@@ -1067,9 +1067,6 @@ config FW_ARC
+  config ARCH_MAY_HAVE_PC_FDC
+  	bool
+  
+@@ -19,7 +19,7 @@ Acked-by: Rob Landley <rob@landley.net>
+  config CEVT_BCM1480
+  	bool
+  
+-@@ -3040,6 +3037,18 @@ choice
++@@ -3041,6 +3038,18 @@ choice
+  		bool "Extend builtin kernel arguments with bootloader arguments"
+  endchoice
+  
+diff --git a/target/linux/generic/pending-5.4/670-ipv6-allow-rejecting-with-source-address-failed-policy.patch b/target/linux/generic/pending-5.4/670-ipv6-allow-rejecting-with-source-address-failed-policy.patch
+index 766abc7489af..232aee9634ae 100644
+--- a/target/linux/generic/pending-5.4/670-ipv6-allow-rejecting-with-source-address-failed-policy.patch
++++ b/target/linux/generic/pending-5.4/670-ipv6-allow-rejecting-with-source-address-failed-policy.patch
+@@ -138,7 +138,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
+  static const struct rt6_info ip6_blk_hole_entry_template = {
+  	.dst = {
+  		.__refcnt	= ATOMIC_INIT(1),
+-@@ -1044,6 +1058,7 @@ static const int fib6_prop[RTN_MAX + 1]
++@@ -1047,6 +1061,7 @@ static const int fib6_prop[RTN_MAX + 1]
+  	[RTN_BLACKHOLE]	= -EINVAL,
+  	[RTN_UNREACHABLE] = -EHOSTUNREACH,
+  	[RTN_PROHIBIT]	= -EACCES,
+@@ -146,7 +146,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
+  	[RTN_THROW]	= -EAGAIN,
+  	[RTN_NAT]	= -EINVAL,
+  	[RTN_XRESOLVE]	= -EINVAL,
+-@@ -1081,6 +1096,10 @@ static void ip6_rt_init_dst_reject(struc
++@@ -1084,6 +1099,10 @@ static void ip6_rt_init_dst_reject(struc
+  		rt->dst.output = ip6_pkt_prohibit_out;
+  		rt->dst.input = ip6_pkt_prohibit;
+  		break;
+@@ -157,7 +157,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
+  	case RTN_THROW:
+  	case RTN_UNREACHABLE:
+  	default:
+-@@ -4416,6 +4435,17 @@ static int ip6_pkt_prohibit_out(struct n
++@@ -4419,6 +4438,17 @@ static int ip6_pkt_prohibit_out(struct n
+  	return ip6_pkt_drop(skb, ICMPV6_ADM_PROHIBITED, IPSTATS_MIB_OUTNOROUTES);
+  }
+  
+@@ -175,7 +175,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
+  /*
+   *	Allocate a dst for local (unicast / anycast) address.
+   */
+-@@ -4896,7 +4926,8 @@ static int rtm_to_fib6_config(struct sk_
++@@ -4899,7 +4929,8 @@ static int rtm_to_fib6_config(struct sk_
+  	if (rtm->rtm_type == RTN_UNREACHABLE ||
+  	    rtm->rtm_type == RTN_BLACKHOLE ||
+  	    rtm->rtm_type == RTN_PROHIBIT ||
+@@ -185,7 +185,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
+  		cfg->fc_flags |= RTF_REJECT;
+  
+  	if (rtm->rtm_type == RTN_LOCAL)
+-@@ -6016,6 +6047,8 @@ static int ip6_route_dev_notify(struct n
++@@ -6019,6 +6050,8 @@ static int ip6_route_dev_notify(struct n
+  #ifdef CONFIG_IPV6_MULTIPLE_TABLES
+  		net->ipv6.ip6_prohibit_entry->dst.dev = dev;
+  		net->ipv6.ip6_prohibit_entry->rt6i_idev = in6_dev_get(dev);
+@@ -194,7 +194,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
+  		net->ipv6.ip6_blk_hole_entry->dst.dev = dev;
+  		net->ipv6.ip6_blk_hole_entry->rt6i_idev = in6_dev_get(dev);
+  #endif
+-@@ -6027,6 +6060,7 @@ static int ip6_route_dev_notify(struct n
++@@ -6030,6 +6063,7 @@ static int ip6_route_dev_notify(struct n
+  		in6_dev_put_clear(&net->ipv6.ip6_null_entry->rt6i_idev);
+  #ifdef CONFIG_IPV6_MULTIPLE_TABLES
+  		in6_dev_put_clear(&net->ipv6.ip6_prohibit_entry->rt6i_idev);
+@@ -202,7 +202,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
+  		in6_dev_put_clear(&net->ipv6.ip6_blk_hole_entry->rt6i_idev);
+  #endif
+  	}
+-@@ -6219,6 +6253,8 @@ static int __net_init ip6_route_net_init
++@@ -6222,6 +6256,8 @@ static int __net_init ip6_route_net_init
+  
+  #ifdef CONFIG_IPV6_MULTIPLE_TABLES
+  	net->ipv6.fib6_has_custom_rules = false;
+@@ -211,7 +211,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
+  	net->ipv6.ip6_prohibit_entry = kmemdup(&ip6_prohibit_entry_template,
+  					       sizeof(*net->ipv6.ip6_prohibit_entry),
+  					       GFP_KERNEL);
+-@@ -6229,11 +6265,21 @@ static int __net_init ip6_route_net_init
++@@ -6232,11 +6268,21 @@ static int __net_init ip6_route_net_init
+  			 ip6_template_metrics, true);
+  	INIT_LIST_HEAD(&net->ipv6.ip6_prohibit_entry->rt6i_uncached);
+  
+@@ -234,7 +234,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
+  	net->ipv6.ip6_blk_hole_entry->dst.ops = &net->ipv6.ip6_dst_ops;
+  	dst_init_metrics(&net->ipv6.ip6_blk_hole_entry->dst,
+  			 ip6_template_metrics, true);
+-@@ -6257,6 +6303,8 @@ out:
++@@ -6260,6 +6306,8 @@ out:
+  	return ret;
+  
+  #ifdef CONFIG_IPV6_MULTIPLE_TABLES
+@@ -243,7 +243,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
+  out_ip6_prohibit_entry:
+  	kfree(net->ipv6.ip6_prohibit_entry);
+  out_ip6_null_entry:
+-@@ -6276,6 +6324,7 @@ static void __net_exit ip6_route_net_exi
++@@ -6279,6 +6327,7 @@ static void __net_exit ip6_route_net_exi
+  	kfree(net->ipv6.ip6_null_entry);
+  #ifdef CONFIG_IPV6_MULTIPLE_TABLES
+  	kfree(net->ipv6.ip6_prohibit_entry);
+@@ -251,7 +251,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
+  	kfree(net->ipv6.ip6_blk_hole_entry);
+  #endif
+  	dst_entries_destroy(&net->ipv6.ip6_dst_ops);
+-@@ -6353,6 +6402,9 @@ void __init ip6_route_init_special_entri
++@@ -6356,6 +6405,9 @@ void __init ip6_route_init_special_entri
+  	init_net.ipv6.ip6_prohibit_entry->rt6i_idev = in6_dev_get(init_net.loopback_dev);
+  	init_net.ipv6.ip6_blk_hole_entry->dst.dev = init_net.loopback_dev;
+  	init_net.ipv6.ip6_blk_hole_entry->rt6i_idev = in6_dev_get(init_net.loopback_dev);
+diff --git a/target/linux/generic/pending-5.4/810-pci_disable_common_quirks.patch b/target/linux/generic/pending-5.4/810-pci_disable_common_quirks.patch
+index ac659c2f9f7a..3f89103fa2ad 100644
+--- a/target/linux/generic/pending-5.4/810-pci_disable_common_quirks.patch
++++ b/target/linux/generic/pending-5.4/810-pci_disable_common_quirks.patch
+@@ -33,7 +33,7 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
+  /*
+   * The Mellanox Tavor device gives false positive parity errors.  Mark this
+   * device with a broken_parity_status to allow PCI scanning code to "skip"
+-@@ -3307,6 +3308,8 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_I
++@@ -3320,6 +3321,8 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_I
+  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x65f9, quirk_intel_mc_errata);
+  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x65fa, quirk_intel_mc_errata);
+  
+@@ -42,7 +42,7 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
+  /*
+   * Ivytown NTB BAR sizes are misreported by the hardware due to an erratum.
+   * To work around this, query the size it should be configured to by the
+-@@ -3332,6 +3335,8 @@ static void quirk_intel_ntb(struct pci_d
++@@ -3345,6 +3348,8 @@ static void quirk_intel_ntb(struct pci_d
+  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x0e08, quirk_intel_ntb);
+  DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, 0x0e0d, quirk_intel_ntb);
+  
+@@ -51,7 +51,7 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
+  /*
+   * Some BIOS implementations leave the Intel GPU interrupts enabled, even
+   * though no one is handling them (e.g., if the i915 driver is never
+-@@ -3370,6 +3375,8 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_IN
++@@ -3383,6 +3388,8 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_IN
+  DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x010a, disable_igfx_irq);
+  DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x0152, disable_igfx_irq);
+  
+diff --git a/target/linux/lantiq/patches-5.4/0152-lantiq-VPE.patch b/target/linux/lantiq/patches-5.4/0152-lantiq-VPE.patch
+index f4540558249c..fa0f136cb276 100644
+--- a/target/linux/lantiq/patches-5.4/0152-lantiq-VPE.patch
++++ b/target/linux/lantiq/patches-5.4/0152-lantiq-VPE.patch
+@@ -1,6 +1,6 @@
+ --- a/arch/mips/Kconfig
+ +++ b/arch/mips/Kconfig
+-@@ -2375,6 +2375,12 @@ config MIPS_VPE_LOADER
++@@ -2376,6 +2376,12 @@ config MIPS_VPE_LOADER
+  	  Includes a loader for loading an elf relocatable object
+  	  onto another VPE and running it.
+  
+diff --git a/target/linux/layerscape/patches-5.4/701-net-0231-enetc-Use-DT-protocol-information-to-set-up-the-port.patch b/target/linux/layerscape/patches-5.4/701-net-0231-enetc-Use-DT-protocol-information-to-set-up-the-port.patch
+index 54fc619dd6f3..dcdd279204a3 100644
+--- a/target/linux/layerscape/patches-5.4/701-net-0231-enetc-Use-DT-protocol-information-to-set-up-the-port.patch
++++ b/target/linux/layerscape/patches-5.4/701-net-0231-enetc-Use-DT-protocol-information-to-set-up-the-port.patch
+@@ -156,15 +156,15 @@ Signed-off-by: Claudiu Manoil <claudiu.manoil@nxp.com>
+  	err = enetc_configure_serdes(priv);
+  	if (err)
+  		dev_warn(&pdev->dev, "Attempted serdes config but failed\n");
+-@@ -937,7 +942,6 @@ static int enetc_pf_probe(struct pci_dev
+- 	return 0;
++@@ -938,7 +943,6 @@ static int enetc_pf_probe(struct pci_dev
+  
+  err_reg_netdev:
++ 	enetc_mdio_remove(pf);
+ -	enetc_of_put_phy(priv);
+  	enetc_free_msix(priv);
+  err_alloc_msix:
+  	enetc_free_si_resources(priv);
+-@@ -945,6 +949,7 @@ err_alloc_si_res:
++@@ -946,6 +950,7 @@ err_alloc_si_res:
+  	si->ndev = NULL;
+  	free_netdev(ndev);
+  err_alloc_netdev:
+@@ -172,7 +172,7 @@ Signed-off-by: Claudiu Manoil <claudiu.manoil@nxp.com>
+  err_map_pf_space:
+  	enetc_pci_remove(pdev);
+  
+-@@ -967,7 +972,7 @@ static void enetc_pf_remove(struct pci_d
++@@ -968,7 +973,7 @@ static void enetc_pf_remove(struct pci_d
+  	unregister_netdev(si->ndev);
+  
+  	enetc_mdio_remove(pf);
+diff --git a/target/linux/layerscape/patches-5.4/701-net-0234-enetc-WA-for-MDIO-register-access-issue.patch b/target/linux/layerscape/patches-5.4/701-net-0234-enetc-WA-for-MDIO-register-access-issue.patch
+index b754389f6a5e..5f24a6069098 100644
+--- a/target/linux/layerscape/patches-5.4/701-net-0234-enetc-WA-for-MDIO-register-access-issue.patch
++++ b/target/linux/layerscape/patches-5.4/701-net-0234-enetc-WA-for-MDIO-register-access-issue.patch
+@@ -397,7 +397,7 @@ Signed-off-by: Alex Marginean <alexandru.marginean@nxp.com>
+  #define enetc_mdio_rd(mdio_priv, off) \
+ --- a/drivers/net/ethernet/freescale/enetc/enetc_pf.c
+ +++ b/drivers/net/ethernet/freescale/enetc/enetc_pf.c
+-@@ -986,6 +986,9 @@ static void enetc_pf_remove(struct pci_d
++@@ -987,6 +987,9 @@ static void enetc_pf_remove(struct pci_d
+  	enetc_pci_remove(pdev);
+  }
+  
+diff --git a/target/linux/layerscape/patches-5.4/701-net-0236-enetc-Replace-enetc_gregs-with-a-readers-writer-lock.patch b/target/linux/layerscape/patches-5.4/701-net-0236-enetc-Replace-enetc_gregs-with-a-readers-writer-lock.patch
+index d5a18f6c2ae4..ca79c4384800 100644
+--- a/target/linux/layerscape/patches-5.4/701-net-0236-enetc-Replace-enetc_gregs-with-a-readers-writer-lock.patch
++++ b/target/linux/layerscape/patches-5.4/701-net-0236-enetc-Replace-enetc_gregs-with-a-readers-writer-lock.patch
+@@ -371,7 +371,7 @@ Signed-off-by: Claudiu Manoil <claudiu.manoil@nxp.com>
+  #define enetc_rd(hw, off)		enetc_rd_reg((hw)->reg + (off))
+ --- a/drivers/net/ethernet/freescale/enetc/enetc_pf.c
+ +++ b/drivers/net/ethernet/freescale/enetc/enetc_pf.c
+-@@ -986,8 +986,9 @@ static void enetc_pf_remove(struct pci_d
++@@ -987,8 +987,9 @@ static void enetc_pf_remove(struct pci_d
+  	enetc_pci_remove(pdev);
+  }
+  
+diff --git a/target/linux/layerscape/patches-5.4/701-net-0237-enetc-Remove-mdio-bus-on-PF-probe-error-path.patch b/target/linux/layerscape/patches-5.4/701-net-0237-enetc-Remove-mdio-bus-on-PF-probe-error-path.patch
+index e3d36978d42a..87ca136a2138 100644
+--- a/target/linux/layerscape/patches-5.4/701-net-0237-enetc-Remove-mdio-bus-on-PF-probe-error-path.patch
++++ b/target/linux/layerscape/patches-5.4/701-net-0237-enetc-Remove-mdio-bus-on-PF-probe-error-path.patch
+@@ -48,7 +48,7 @@ Signed-off-by: Claudiu Manoil <claudiu.manoil@nxp.com>
+ 
+ --- a/drivers/net/ethernet/freescale/enetc/enetc_pf.c
+ +++ b/drivers/net/ethernet/freescale/enetc/enetc_pf.c
+-@@ -952,6 +952,7 @@ err_alloc_si_res:
++@@ -953,6 +953,7 @@ err_alloc_si_res:
+  	si->ndev = NULL;
+  	free_netdev(ndev);
+  err_alloc_netdev:
+diff --git a/target/linux/layerscape/patches-5.4/701-net-0337-enetc-add-support-tsn-capabilities-qbv-qci-qbu-cbs.patch b/target/linux/layerscape/patches-5.4/701-net-0337-enetc-add-support-tsn-capabilities-qbv-qci-qbu-cbs.patch
+index 6200bd88ae3d..e54631f71f88 100644
+--- a/target/linux/layerscape/patches-5.4/701-net-0337-enetc-add-support-tsn-capabilities-qbv-qci-qbu-cbs.patch
++++ b/target/linux/layerscape/patches-5.4/701-net-0337-enetc-add-support-tsn-capabilities-qbv-qci-qbu-cbs.patch
+@@ -848,7 +848,7 @@ Signed-off-by: Po Liu <Po.Liu@nxp.com>
+  	return 0;
+  
+  err_reg_netdev:
+-@@ -973,6 +982,8 @@ static void enetc_pf_remove(struct pci_d
++@@ -974,6 +983,8 @@ static void enetc_pf_remove(struct pci_d
+  	netif_info(priv, drv, si->ndev, "%s v%s remove\n",
+  		   enetc_drv_name, enetc_drv_ver);
+  
+diff --git a/target/linux/layerscape/patches-5.4/806-dma-0019-dmaengine-fsl-edma-calculate-the-real-count-for-slav.patch b/target/linux/layerscape/patches-5.4/806-dma-0019-dmaengine-fsl-edma-calculate-the-real-count-for-slav.patch
+index 4278711b8070..f8bbaaffa1e9 100644
+--- a/target/linux/layerscape/patches-5.4/806-dma-0019-dmaengine-fsl-edma-calculate-the-real-count-for-slav.patch
++++ b/target/linux/layerscape/patches-5.4/806-dma-0019-dmaengine-fsl-edma-calculate-the-real-count-for-slav.patch
+@@ -60,9 +60,9 @@ Signed-off-by: Fugang Duan <fugang.duan@nxp.com>
+  struct dma_async_tx_descriptor *fsl_edma_prep_dma_cyclic(
+ --- a/drivers/dma/fsl-edma.c
+ +++ b/drivers/dma/fsl-edma.c
+-@@ -46,6 +46,7 @@ static irqreturn_t fsl_edma_tx_handler(i
++@@ -53,6 +53,7 @@ static irqreturn_t fsl_edma_tx_handler(i
++ 			}
+  
+- 			spin_lock(&fsl_chan->vchan.lock);
+  			if (!fsl_chan->edesc->iscyclic) {
+ +				fsl_edma_get_realcnt(fsl_chan);
+  				list_del(&fsl_chan->edesc->vdesc.node);
+diff --git a/target/linux/layerscape/patches-5.4/806-dma-0028-dmaengine-fsl-edma-Add-eDMA-support-for-QorIQ-LS1028.patch b/target/linux/layerscape/patches-5.4/806-dma-0028-dmaengine-fsl-edma-Add-eDMA-support-for-QorIQ-LS1028.patch
+index 611f96b1a8df..4707eccdabfd 100644
+--- a/target/linux/layerscape/patches-5.4/806-dma-0028-dmaengine-fsl-edma-Add-eDMA-support-for-QorIQ-LS1028.patch
++++ b/target/linux/layerscape/patches-5.4/806-dma-0028-dmaengine-fsl-edma-Add-eDMA-support-for-QorIQ-LS1028.patch
+@@ -70,7 +70,7 @@ Signed-off-by: Vinod Koul <vkoul@kernel.org>
+  };
+ --- a/drivers/dma/fsl-edma.c
+ +++ b/drivers/dma/fsl-edma.c
+-@@ -234,6 +234,13 @@ static struct fsl_edma_drvdata vf610_dat
++@@ -241,6 +241,13 @@ static struct fsl_edma_drvdata vf610_dat
+  	.setup_irq = fsl_edma_irq_init,
+  };
+  
+@@ -84,7 +84,7 @@ Signed-off-by: Vinod Koul <vkoul@kernel.org>
+  static struct fsl_edma_drvdata imx7ulp_data = {
+  	.version = v3,
+  	.dmamuxs = 1,
+-@@ -243,6 +250,7 @@ static struct fsl_edma_drvdata imx7ulp_d
++@@ -250,6 +257,7 @@ static struct fsl_edma_drvdata imx7ulp_d
+  
+  static const struct of_device_id fsl_edma_dt_ids[] = {
+  	{ .compatible = "fsl,vf610-edma", .data = &vf610_data},
+diff --git a/target/linux/layerscape/patches-5.4/811-kvm-0002-arm-arm64-KVM-allow-specifying-s2-prot-bits-when-map.patch b/target/linux/layerscape/patches-5.4/811-kvm-0002-arm-arm64-KVM-allow-specifying-s2-prot-bits-when-map.patch
+index d4fcf5c4b884..96708ec09e37 100644
+--- a/target/linux/layerscape/patches-5.4/811-kvm-0002-arm-arm64-KVM-allow-specifying-s2-prot-bits-when-map.patch
++++ b/target/linux/layerscape/patches-5.4/811-kvm-0002-arm-arm64-KVM-allow-specifying-s2-prot-bits-when-map.patch
+@@ -64,7 +64,7 @@ Signed-off-by: Laurentiu Tudor <laurentiu.tudor@nxp.com>
+  
+  		if (writable)
+  			pte = kvm_s2pte_mkwrite(pte);
+-@@ -2346,7 +2348,7 @@ int kvm_arch_prepare_memory_region(struc
++@@ -2347,7 +2349,7 @@ int kvm_arch_prepare_memory_region(struc
+  
+  			ret = kvm_phys_addr_ioremap(kvm, gpa, pa,
+  						    vm_end - vm_start,
+diff --git a/target/linux/layerscape/patches-5.4/811-kvm-0003-arm-arm64-KVM-drop-qman-mmio-cacheable-mapping-hack.patch b/target/linux/layerscape/patches-5.4/811-kvm-0003-arm-arm64-KVM-drop-qman-mmio-cacheable-mapping-hack.patch
+index 8593714b3d1d..3c8203ea45d2 100644
+--- a/target/linux/layerscape/patches-5.4/811-kvm-0003-arm-arm64-KVM-drop-qman-mmio-cacheable-mapping-hack.patch
++++ b/target/linux/layerscape/patches-5.4/811-kvm-0003-arm-arm64-KVM-drop-qman-mmio-cacheable-mapping-hack.patch
+@@ -105,7 +105,7 @@ Signed-off-by: Diana Craciun <diana.craciun@nxp.com>
+  	if (kvm_is_device_pfn(pfn)) {
+  		mem_type = PAGE_S2_DEVICE;
+  		flags |= KVM_S2PTE_FLAG_IS_IOMAP;
+-@@ -2336,6 +2380,9 @@ int kvm_arch_prepare_memory_region(struc
++@@ -2337,6 +2381,9 @@ int kvm_arch_prepare_memory_region(struc
+  			gpa_t gpa = mem->guest_phys_addr +
+  				    (vm_start - mem->userspace_addr);
+  			phys_addr_t pa;
+@@ -115,7 +115,7 @@ Signed-off-by: Diana Craciun <diana.craciun@nxp.com>
+  
+  			pa = (phys_addr_t)vma->vm_pgoff << PAGE_SHIFT;
+  			pa += vm_start - vma->vm_start;
+-@@ -2346,9 +2393,13 @@ int kvm_arch_prepare_memory_region(struc
++@@ -2347,9 +2394,13 @@ int kvm_arch_prepare_memory_region(struc
+  				goto out;
+  			}
+  
+diff --git a/target/linux/layerscape/patches-5.4/812-pcie-0005-MLK-20684-PCI-Disable-MSI-on-CYW4356-and-CYW4359-chi.patch b/target/linux/layerscape/patches-5.4/812-pcie-0005-MLK-20684-PCI-Disable-MSI-on-CYW4356-and-CYW4359-chi.patch
+index eaedf8a9ece2..5a00cf765f2c 100644
+--- a/target/linux/layerscape/patches-5.4/812-pcie-0005-MLK-20684-PCI-Disable-MSI-on-CYW4356-and-CYW4359-chi.patch
++++ b/target/linux/layerscape/patches-5.4/812-pcie-0005-MLK-20684-PCI-Disable-MSI-on-CYW4356-and-CYW4359-chi.patch
+@@ -19,7 +19,7 @@ Signed-off-by: Fugang Duan <fugang.duan@nxp.com>
+ 
+ --- a/drivers/pci/quirks.c
+ +++ b/drivers/pci/quirks.c
+-@@ -2510,6 +2510,8 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_VI
++@@ -2523,6 +2523,8 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_VI
+  DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_VT3364, quirk_disable_all_msi);
+  DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8380_0, quirk_disable_all_msi);
+  DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_SI, 0x0761, quirk_disable_all_msi);
+diff --git a/target/linux/layerscape/patches-5.4/812-pcie-0007-PCI-Disable-MSI-on-marvel-88w9098-and-88w8997-chips.patch b/target/linux/layerscape/patches-5.4/812-pcie-0007-PCI-Disable-MSI-on-marvel-88w9098-and-88w8997-chips.patch
+index 79e7ef9db592..835b5cedb9a3 100644
+--- a/target/linux/layerscape/patches-5.4/812-pcie-0007-PCI-Disable-MSI-on-marvel-88w9098-and-88w8997-chips.patch
++++ b/target/linux/layerscape/patches-5.4/812-pcie-0007-PCI-Disable-MSI-on-marvel-88w9098-and-88w8997-chips.patch
+@@ -14,7 +14,7 @@ Signed-off-by: Fugang Duan <fugang.duan@nxp.com>
+ 
+ --- a/drivers/pci/quirks.c
+ +++ b/drivers/pci/quirks.c
+-@@ -2516,6 +2516,9 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_VI
++@@ -2529,6 +2529,9 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_VI
+  DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_SI, 0x0761, quirk_disable_all_msi);
+  DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_BROADCOM, 0x43ec, quirk_disable_all_msi);
+  DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_BROADCOM, 0x43ef, quirk_disable_all_msi);
+diff --git a/target/linux/mediatek/patches-5.4/0400-eth-fix-rx-vlan-hw-offload.patch b/target/linux/mediatek/patches-5.4/0400-eth-fix-rx-vlan-hw-offload.patch
+index b1fda5eeec25..dd75edf1166e 100644
+--- a/target/linux/mediatek/patches-5.4/0400-eth-fix-rx-vlan-hw-offload.patch
++++ b/target/linux/mediatek/patches-5.4/0400-eth-fix-rx-vlan-hw-offload.patch
+@@ -1,6 +1,6 @@
+ --- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+ +++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+-@@ -1306,7 +1306,7 @@ static int mtk_poll_rx(struct napi_struc
++@@ -1315,7 +1315,7 @@ static int mtk_poll_rx(struct napi_struc
+  		skb->protocol = eth_type_trans(skb, netdev);
+  
+  		if (netdev->features & NETIF_F_HW_VLAN_CTAG_RX &&
+diff --git a/target/linux/mediatek/patches-5.4/0401-eth-fix-eth1-tx-timeout.patch b/target/linux/mediatek/patches-5.4/0401-eth-fix-eth1-tx-timeout.patch
+index 271a70df62ef..407211830228 100644
+--- a/target/linux/mediatek/patches-5.4/0401-eth-fix-eth1-tx-timeout.patch
++++ b/target/linux/mediatek/patches-5.4/0401-eth-fix-eth1-tx-timeout.patch
+@@ -1,6 +1,6 @@
+ --- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+ +++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+-@@ -1112,17 +1112,6 @@ static void mtk_wake_queue(struct mtk_et
++@@ -1121,17 +1121,6 @@ static void mtk_wake_queue(struct mtk_et
+  	}
+  }
+  
+@@ -18,7 +18,7 @@
+  static int mtk_start_xmit(struct sk_buff *skb, struct net_device *dev)
+  {
+  	struct mtk_mac *mac = netdev_priv(dev);
+-@@ -1143,7 +1132,7 @@ static int mtk_start_xmit(struct sk_buff
++@@ -1152,7 +1141,7 @@ static int mtk_start_xmit(struct sk_buff
+  
+  	tx_num = mtk_cal_txd_req(skb);
+  	if (unlikely(atomic_read(&ring->free_count) <= tx_num)) {
+@@ -27,7 +27,7 @@
+  		netif_err(eth, tx_queued, dev,
+  			  "Tx Ring full when queue awake!\n");
+  		spin_unlock(&eth->page_lock);
+-@@ -1169,7 +1158,7 @@ static int mtk_start_xmit(struct sk_buff
++@@ -1178,7 +1167,7 @@ static int mtk_start_xmit(struct sk_buff
+  		goto drop;
+  
+  	if (unlikely(atomic_read(&ring->free_count) <= ring->thresh))
+diff --git a/target/linux/mediatek/patches-5.4/0402-net-ethernet-mtk_eth_soc-Always-call-mtk_gmac0_rgmii.patch b/target/linux/mediatek/patches-5.4/0402-net-ethernet-mtk_eth_soc-Always-call-mtk_gmac0_rgmii.patch
+index 0dc50f28d8f6..351d9534e644 100644
+--- a/target/linux/mediatek/patches-5.4/0402-net-ethernet-mtk_eth_soc-Always-call-mtk_gmac0_rgmii.patch
++++ b/target/linux/mediatek/patches-5.4/0402-net-ethernet-mtk_eth_soc-Always-call-mtk_gmac0_rgmii.patch
+@@ -16,11 +16,9 @@ Signed-off-By: David Woodhouse <dwmw2@infradead.org>
+  drivers/net/ethernet/mediatek/mtk_eth_soc.c | 19 ++++++++++++++-----
+  1 file changed, 14 insertions(+), 5 deletions(-)
+ 
+-diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.c b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+-index b5408c5b954a..f89f225ab144 100644
+ --- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+ +++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+-@@ -171,11 +171,21 @@ static int mt7621_gmac0_rgmii_adjust(struct mtk_eth *eth,
++@@ -171,11 +171,21 @@ static int mt7621_gmac0_rgmii_adjust(str
+  	return 0;
+  }
+  
+@@ -43,7 +41,7 @@ index b5408c5b954a..f89f225ab144 100644
+  	val = (speed == SPEED_1000) ?
+  		INTF_MODE_RGMII_1000 : INTF_MODE_RGMII_10_100;
+  	mtk_w32(eth, val, INTF_MODE);
+-@@ -262,10 +272,9 @@ static void mtk_mac_config(struct phylink_config *config, unsigned int mode,
++@@ -262,10 +272,9 @@ static void mtk_mac_config(struct phylin
+  							      state->interface))
+  					goto err_phy;
+  			} else {
+@@ -57,6 +55,3 @@ index b5408c5b954a..f89f225ab144 100644
+  
+  				/* mt7623_pad_clk_setup */
+  				for (i = 0 ; i < NUM_TRGMII_CTRL; i++)
+--- 
+-2.26.2
+-
+diff --git a/target/linux/mediatek/patches-5.4/0991-dt-bindings-PCI-Mediatek-Update-PCIe-binding.patch b/target/linux/mediatek/patches-5.4/0991-dt-bindings-PCI-Mediatek-Update-PCIe-binding.patch
+index e32042301fb5..02e4c130ea46 100644
+--- a/target/linux/mediatek/patches-5.4/0991-dt-bindings-PCI-Mediatek-Update-PCIe-binding.patch
++++ b/target/linux/mediatek/patches-5.4/0991-dt-bindings-PCI-Mediatek-Update-PCIe-binding.patch
+@@ -382,8 +382,7 @@ Signed-off-by: chuanjia.liu <Chuanjia.Liu@mediatek.com>
+  			};
+  		};
+ +	};
+- 
+--		pcie1: pcie@1,0 {
+++
+ +	pcie1: pcie@1a145000 {
+ +		compatible = "mediatek,mt7622-pcie";
+ +		device_type = "pci";
+@@ -408,7 +407,8 @@ Signed-off-by: chuanjia.liu <Chuanjia.Liu@mediatek.com>
+ +		bus-range = <0x00 0xff>;
+ +		ranges = <0x82000000 0 0x28000000  0 0x28000000  0 0x8000000>;
+ +		status = "disabled";
+-+
++ 
++-		pcie1: pcie@1,0 {
+ +		slot1: pcie@1,0 {
+  			reg = <0x0800 0 0 0 0>;
+  			#address-cells = <3>;
+diff --git a/target/linux/mediatek/patches-5.4/0999-hnat.patch b/target/linux/mediatek/patches-5.4/0999-hnat.patch
+index f0af321fd8bb..608231a9f7bf 100644
+--- a/target/linux/mediatek/patches-5.4/0999-hnat.patch
++++ b/target/linux/mediatek/patches-5.4/0999-hnat.patch
+@@ -147,7 +147,7 @@
+  
+  #include "mtk_eth_soc.h"
+  
+-@@ -1298,8 +1300,16 @@ static int mtk_poll_rx(struct napi_struc
++@@ -1307,8 +1309,16 @@ static int mtk_poll_rx(struct napi_struc
+  		    (trxd.rxd2 & RX_DMA_VTAG))
+  			__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q),
+  					       RX_DMA_VID(trxd.rxd3));
+@@ -166,7 +166,7 @@
+  
+  		ring->data[idx] = new_data;
+  		rxd->rxd1 = (unsigned int)dma_addr;
+-@@ -2216,6 +2226,9 @@ static int mtk_open(struct net_device *d
++@@ -2225,6 +2235,9 @@ static int mtk_open(struct net_device *d
+  		mtk_tx_irq_enable(eth, MTK_TX_DONE_INT);
+  		mtk_rx_irq_enable(eth, MTK_RX_DONE_INT);
+  		refcount_set(&eth->dma_refcnt, 1);
+@@ -176,7 +176,7 @@
+  	}
+  	else
+  		refcount_inc(&eth->dma_refcnt);
+-@@ -2274,6 +2287,9 @@ static int mtk_stop(struct net_device *d
++@@ -2283,6 +2296,9 @@ static int mtk_stop(struct net_device *d
+  
+  	mtk_dma_free(eth);
+  
+@@ -186,7 +186,7 @@
+  	return 0;
+  }
+  
+-@@ -2733,6 +2749,27 @@ static int mtk_set_rxnfc(struct net_devi
++@@ -2742,6 +2758,27 @@ static int mtk_set_rxnfc(struct net_devi
+  	return ret;
+  }
+  
+@@ -214,7 +214,7 @@
+  static const struct ethtool_ops mtk_ethtool_ops = {
+  	.get_link_ksettings	= mtk_get_link_ksettings,
+  	.set_link_ksettings	= mtk_set_link_ksettings,
+-@@ -2764,6 +2801,9 @@ static const struct net_device_ops mtk_n
++@@ -2773,6 +2810,9 @@ static const struct net_device_ops mtk_n
+  #ifdef CONFIG_NET_POLL_CONTROLLER
+  	.ndo_poll_controller	= mtk_poll_controller,
+  #endif
+@@ -224,7 +224,7 @@
+  };
+  
+  static int mtk_add_mac(struct mtk_eth *eth, struct device_node *np)
+-@@ -3097,6 +3137,7 @@ static const struct mtk_soc_data mt7622_
++@@ -3106,6 +3146,7 @@ static const struct mtk_soc_data mt7622_
+  	.hw_features = MTK_HW_FEATURES,
+  	.required_clks = MT7622_CLKS_BITMAP,
+  	.required_pctl = false,
+diff --git a/target/linux/mediatek/patches-5.4/1000-eth-gdm-config-backport.patch b/target/linux/mediatek/patches-5.4/1000-eth-gdm-config-backport.patch
+index 7b8d186aa41b..78932933de5b 100644
+--- a/target/linux/mediatek/patches-5.4/1000-eth-gdm-config-backport.patch
++++ b/target/linux/mediatek/patches-5.4/1000-eth-gdm-config-backport.patch
+@@ -1,6 +1,6 @@
+ --- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+ +++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+-@@ -2201,6 +2201,31 @@ static int mtk_start_dma(struct mtk_eth
++@@ -2210,6 +2210,31 @@ static int mtk_start_dma(struct mtk_eth
+  	return 0;
+  }
+  
+@@ -32,7 +32,7 @@
+  static int mtk_open(struct net_device *dev)
+  {
+  	struct mtk_mac *mac = netdev_priv(dev);
+-@@ -2221,6 +2246,8 @@ static int mtk_open(struct net_device *d
++@@ -2230,6 +2255,8 @@ static int mtk_open(struct net_device *d
+  		if (err)
+  			return err;
+  
+@@ -41,7 +41,7 @@
+  		napi_enable(&eth->tx_napi);
+  		napi_enable(&eth->rx_napi);
+  		mtk_tx_irq_enable(eth, MTK_TX_DONE_INT);
+-@@ -2276,6 +2303,8 @@ static int mtk_stop(struct net_device *d
++@@ -2285,6 +2312,8 @@ static int mtk_stop(struct net_device *d
+  	if (!refcount_dec_and_test(&eth->dma_refcnt))
+  		return 0;
+  
+@@ -50,7 +50,7 @@
+  	mtk_tx_irq_disable(eth, MTK_TX_DONE_INT);
+  	mtk_rx_irq_disable(eth, MTK_RX_DONE_INT);
+  	napi_disable(&eth->tx_napi);
+-@@ -2402,8 +2431,6 @@ static int mtk_hw_init(struct mtk_eth *e
++@@ -2411,8 +2440,6 @@ static int mtk_hw_init(struct mtk_eth *e
+  	mtk_w32(eth, 0, MTK_QDMA_DELAY_INT);
+  	mtk_tx_irq_disable(eth, ~0);
+  	mtk_rx_irq_disable(eth, ~0);
+@@ -59,7 +59,7 @@
+  
+  	/* FE int grouping */
+  	mtk_w32(eth, MTK_TX_DONE_INT, MTK_PDMA_INT_GRP1);
+-@@ -2412,19 +2439,6 @@ static int mtk_hw_init(struct mtk_eth *e
++@@ -2421,19 +2448,6 @@ static int mtk_hw_init(struct mtk_eth *e
+  	mtk_w32(eth, MTK_RX_DONE_INT, MTK_QDMA_INT_GRP2);
+  	mtk_w32(eth, 0x21021000, MTK_FE_INT_GRP);
+  
+diff --git a/target/linux/mediatek/patches-5.4/1001-eth-mtk-disable-TBDDONE-support.patch b/target/linux/mediatek/patches-5.4/1001-eth-mtk-disable-TBDDONE-support.patch
+index ea1d1dce2e7e..a1ddc3d5dfb7 100644
+--- a/target/linux/mediatek/patches-5.4/1001-eth-mtk-disable-TBDDONE-support.patch
++++ b/target/linux/mediatek/patches-5.4/1001-eth-mtk-disable-TBDDONE-support.patch
+@@ -1,6 +1,6 @@
+ --- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+ +++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+-@@ -1355,10 +1355,11 @@ static int mtk_poll_tx_qdma(struct mtk_e
++@@ -1364,10 +1364,11 @@ static int mtk_poll_tx_qdma(struct mtk_e
+  		u32 next_cpu = desc->txd2;
+  		int mac = 0;
+  
+@@ -13,7 +13,7 @@
+  		tx_buf = mtk_desc_to_tx_buf(ring, desc);
+  		if (tx_buf->flags & MTK_TX_FLAGS_FPORT1)
+  			mac = 1;
+-@@ -2182,7 +2183,7 @@ static int mtk_start_dma(struct mtk_eth
++@@ -2191,7 +2192,7 @@ static int mtk_start_dma(struct mtk_eth
+  
+  	if (MTK_HAS_CAPS(eth->soc->caps, MTK_QDMA)) {
+  		mtk_w32(eth,
+diff --git a/target/linux/mvebu/patches-5.4/012-net-mvneta-rely-on-build_skb-in-mvneta_rx_swbm-poll-.patch b/target/linux/mvebu/patches-5.4/012-net-mvneta-rely-on-build_skb-in-mvneta_rx_swbm-poll-.patch
+index 13ed9e4c8aba..e3269a592f17 100644
+--- a/target/linux/mvebu/patches-5.4/012-net-mvneta-rely-on-build_skb-in-mvneta_rx_swbm-poll-.patch
++++ b/target/linux/mvebu/patches-5.4/012-net-mvneta-rely-on-build_skb-in-mvneta_rx_swbm-poll-.patch
+@@ -292,7 +292,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
+  					MVNETA_RX_BUF_SIZE(pp->pkt_size));
+  		mvneta_rxq_bm_disable(pp, rxq);
+  		mvneta_rxq_fill(pp, rxq, rxq->size);
+-@@ -4700,7 +4705,7 @@ static int mvneta_probe(struct platform_
++@@ -4708,7 +4713,7 @@ static int mvneta_probe(struct platform_
+  	SET_NETDEV_DEV(dev, &pdev->dev);
+  
+  	pp->id = global_port_id++;
+diff --git a/target/linux/mvebu/patches-5.4/013-net-mvneta-add-basic-XDP-support.patch b/target/linux/mvebu/patches-5.4/013-net-mvneta-add-basic-XDP-support.patch
+index 06968bdaef36..62c00ddeb193 100644
+--- a/target/linux/mvebu/patches-5.4/013-net-mvneta-add-basic-XDP-support.patch
++++ b/target/linux/mvebu/patches-5.4/013-net-mvneta-add-basic-XDP-support.patch
+@@ -300,7 +300,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
+  };
+  
+  static const struct ethtool_ops mvneta_eth_tool_ops = {
+-@@ -4705,7 +4835,7 @@ static int mvneta_probe(struct platform_
++@@ -4713,7 +4843,7 @@ static int mvneta_probe(struct platform_
+  	SET_NETDEV_DEV(dev, &pdev->dev);
+  
+  	pp->id = global_port_id++;
+diff --git a/target/linux/mvebu/patches-5.4/023-net-mvneta-fix-XDP-support-if-sw-bm-is-used-as-fallb.patch b/target/linux/mvebu/patches-5.4/023-net-mvneta-fix-XDP-support-if-sw-bm-is-used-as-fallb.patch
+index f76b27a36d31..86bffa538afd 100644
+--- a/target/linux/mvebu/patches-5.4/023-net-mvneta-fix-XDP-support-if-sw-bm-is-used-as-fallb.patch
++++ b/target/linux/mvebu/patches-5.4/023-net-mvneta-fix-XDP-support-if-sw-bm-is-used-as-fallb.patch
+@@ -38,7 +38,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
+  	mvreg_write(pp, MVNETA_ACC_MODE, MVNETA_ACC_MODE_EXT1);
+  	netdev_info(pp->dev, "fail to update MTU, fall back to software BM\n");
+  }
+-@@ -4976,7 +4976,6 @@ static int mvneta_probe(struct platform_
++@@ -4984,7 +4984,6 @@ static int mvneta_probe(struct platform_
+  	SET_NETDEV_DEV(dev, &pdev->dev);
+  
+  	pp->id = global_port_id++;
+@@ -46,7 +46,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
+  
+  	/* Obtain access to BM resources if enabled and already initialized */
+  	bm_node = of_parse_phandle(dn, "buffer-manager", 0);
+-@@ -5001,6 +5000,10 @@ static int mvneta_probe(struct platform_
++@@ -5009,6 +5008,10 @@ static int mvneta_probe(struct platform_
+  	}
+  	of_node_put(bm_node);
+  
+@@ -57,7 +57,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
+  	err = mvneta_init(&pdev->dev, pp);
+  	if (err < 0)
+  		goto err_netdev;
+-@@ -5154,6 +5157,7 @@ static int mvneta_resume(struct device *
++@@ -5166,6 +5169,7 @@ static int mvneta_resume(struct device *
+  		err = mvneta_bm_port_init(pdev, pp);
+  		if (err < 0) {
+  			dev_info(&pdev->dev, "use SW buffer management\n");
+diff --git a/target/linux/mvebu/patches-5.4/561-mvebu-armada-38x-enable-libata-leds.patch b/target/linux/mvebu/patches-5.4/561-mvebu-armada-38x-enable-libata-leds.patch
+index 3f9ad364de39..b8ab700c970e 100644
+--- a/target/linux/mvebu/patches-5.4/561-mvebu-armada-38x-enable-libata-leds.patch
++++ b/target/linux/mvebu/patches-5.4/561-mvebu-armada-38x-enable-libata-leds.patch
+@@ -1,6 +1,6 @@
+ --- a/arch/arm/mach-mvebu/Kconfig
+ +++ b/arch/arm/mach-mvebu/Kconfig
+-@@ -68,6 +68,7 @@
++@@ -69,6 +69,7 @@ config MACH_ARMADA_38X
+  	select HAVE_SMP
+  	select MACH_MVEBU_V7
+  	select PINCTRL_ARMADA_38X
+diff --git a/target/linux/octeontx/patches-5.4/0004-PCI-add-quirk-for-Gateworks-PLX-PEX860x-switch-with-.patch b/target/linux/octeontx/patches-5.4/0004-PCI-add-quirk-for-Gateworks-PLX-PEX860x-switch-with-.patch
+index 5308d3b286ce..f35245b8bdef 100644
+--- a/target/linux/octeontx/patches-5.4/0004-PCI-add-quirk-for-Gateworks-PLX-PEX860x-switch-with-.patch
++++ b/target/linux/octeontx/patches-5.4/0004-PCI-add-quirk-for-Gateworks-PLX-PEX860x-switch-with-.patch
+@@ -22,7 +22,7 @@ Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+  #include <linux/platform_data/x86/apple.h>
+  #include <linux/pm_runtime.h>
+  #include <linux/switchtec.h>
+-@@ -5604,3 +5605,34 @@ static void apex_pci_fixup_class(struct
++@@ -5617,3 +5618,34 @@ static void apex_pci_fixup_class(struct
+  }
+  DECLARE_PCI_FIXUP_CLASS_HEADER(0x1ac1, 0x089a,
+  			       PCI_CLASS_NOT_DEFINED, 8, apex_pci_fixup_class);
+diff --git a/target/linux/ramips/patches-5.4/0069-awake-rt305x-dwc2-controller.patch b/target/linux/ramips/patches-5.4/0069-awake-rt305x-dwc2-controller.patch
+index f5283ed1238a..7110a5b8080a 100644
+--- a/target/linux/ramips/patches-5.4/0069-awake-rt305x-dwc2-controller.patch
++++ b/target/linux/ramips/patches-5.4/0069-awake-rt305x-dwc2-controller.patch
+@@ -1,6 +1,6 @@
+ --- a/drivers/usb/dwc2/platform.c
+ +++ b/drivers/usb/dwc2/platform.c
+-@@ -430,6 +430,12 @@ static int dwc2_driver_probe(struct plat
++@@ -431,6 +431,12 @@ static int dwc2_driver_probe(struct plat
+  	if (retval)
+  		return retval;
+  
+diff --git a/target/linux/ramips/patches-5.4/0400-net-ethernet-mediatek-use-napi_consume_skb.patch b/target/linux/ramips/patches-5.4/0400-net-ethernet-mediatek-use-napi_consume_skb.patch
+index 1ccb85d4b434..a31100642b07 100644
+--- a/target/linux/ramips/patches-5.4/0400-net-ethernet-mediatek-use-napi_consume_skb.patch
++++ b/target/linux/ramips/patches-5.4/0400-net-ethernet-mediatek-use-napi_consume_skb.patch
+@@ -9,7 +9,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+ 
+ --- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+ +++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+-@@ -844,7 +844,8 @@ static int txd_to_idx(struct mtk_tx_ring
++@@ -853,7 +853,8 @@ static int txd_to_idx(struct mtk_tx_ring
+  	return ((void *)dma - (void *)ring->dma) / sizeof(*dma);
+  }
+  
+@@ -19,7 +19,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  {
+  	if (MTK_HAS_CAPS(eth->soc->caps, MTK_QDMA)) {
+  		if (tx_buf->flags & MTK_TX_FLAGS_SINGLE0) {
+-@@ -876,8 +877,12 @@ static void mtk_tx_unmap(struct mtk_eth
++@@ -885,8 +886,12 @@ static void mtk_tx_unmap(struct mtk_eth
+  
+  	tx_buf->flags = 0;
+  	if (tx_buf->skb &&
+@@ -34,7 +34,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  	tx_buf->skb = NULL;
+  }
+  
+-@@ -1055,7 +1060,7 @@ err_dma:
++@@ -1064,7 +1069,7 @@ err_dma:
+  		tx_buf = mtk_desc_to_tx_buf(ring, itxd);
+  
+  		/* unmap dma */
+@@ -43,7 +43,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  
+  		itxd->txd3 = TX_DMA_LS0 | TX_DMA_OWNER_CPU;
+  		if (!MTK_HAS_CAPS(eth->soc->caps, MTK_QDMA))
+-@@ -1373,7 +1378,7 @@ static int mtk_poll_tx_qdma(struct mtk_e
++@@ -1382,7 +1387,7 @@ static int mtk_poll_tx_qdma(struct mtk_e
+  			done[mac]++;
+  			budget--;
+  		}
+@@ -52,7 +52,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  
+  		ring->last_free = desc;
+  		atomic_inc(&ring->free_count);
+-@@ -1410,7 +1415,7 @@ static int mtk_poll_tx_pdma(struct mtk_e
++@@ -1419,7 +1424,7 @@ static int mtk_poll_tx_pdma(struct mtk_e
+  			budget--;
+  		}
+  
+@@ -61,7 +61,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
+  
+  		desc = &ring->dma[cpu];
+  		ring->last_free = desc;
+-@@ -1612,7 +1617,7 @@ static void mtk_tx_clean(struct mtk_eth
++@@ -1621,7 +1626,7 @@ static void mtk_tx_clean(struct mtk_eth
+  
+  	if (ring->buf) {
+  		for (i = 0; i < MTK_DMA_SIZE; i++)
+diff --git a/target/linux/ramips/patches-5.4/401-net-ethernet-mediatek-support-net-labels.patch b/target/linux/ramips/patches-5.4/401-net-ethernet-mediatek-support-net-labels.patch
+index 206826c1b2e3..33325876712e 100644
+--- a/target/linux/ramips/patches-5.4/401-net-ethernet-mediatek-support-net-labels.patch
++++ b/target/linux/ramips/patches-5.4/401-net-ethernet-mediatek-support-net-labels.patch
+@@ -14,7 +14,7 @@ Signed-off-by: René van Dorst <opensource@vdorst.com>
+ 
+ --- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+ +++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+-@@ -2784,6 +2784,7 @@ static const struct net_device_ops mtk_n
++@@ -2793,6 +2793,7 @@ static const struct net_device_ops mtk_n
+  
+  static int mtk_add_mac(struct mtk_eth *eth, struct device_node *np)
+  {
+@@ -22,9 +22,9 @@ Signed-off-by: René van Dorst <opensource@vdorst.com>
+  	const __be32 *_id = of_get_property(np, "reg", NULL);
+  	struct phylink *phylink;
+  	int phy_mode, id, err;
+-@@ -2874,6 +2875,9 @@ static int mtk_add_mac(struct mtk_eth *e
+- 	eth->netdev[id]->irq = eth->irq[0];
+- 	eth->netdev[id]->dev.of_node = np;
++@@ -2885,6 +2886,9 @@ static int mtk_add_mac(struct mtk_eth *e
++ 
++ 	eth->netdev[id]->max_mtu = MTK_MAX_RX_LENGTH - MTK_RX_ETH_HLEN;
+  
+ +	if (name)
+ +		strlcpy(eth->netdev[id]->name, name, IFNAMSIZ);
+diff --git a/target/linux/rockchip/patches-5.4/101-dts-rockchip-add-usb3-controller-node-for-RK3328-SoCs.patch b/target/linux/rockchip/patches-5.4/101-dts-rockchip-add-usb3-controller-node-for-RK3328-SoCs.patch
+index 316f7c01d3c5..2635c7a67664 100644
+--- a/target/linux/rockchip/patches-5.4/101-dts-rockchip-add-usb3-controller-node-for-RK3328-SoCs.patch
++++ b/target/linux/rockchip/patches-5.4/101-dts-rockchip-add-usb3-controller-node-for-RK3328-SoCs.patch
+@@ -26,7 +26,7 @@ use-case. You've been warned.
+ 
+ --- a/arch/arm64/boot/dts/rockchip/rk3328.dtsi
+ +++ b/arch/arm64/boot/dts/rockchip/rk3328.dtsi
+-@@ -936,6 +936,33 @@
++@@ -938,6 +938,33 @@
+  		status = "disabled";
+  	};
+  
+diff --git a/target/linux/rockchip/patches-5.4/102-rockchip-enable-LAN-port-on-NanoPi-R2S.patch b/target/linux/rockchip/patches-5.4/102-rockchip-enable-LAN-port-on-NanoPi-R2S.patch
+index 1b52de231eeb..e2aa2d67e698 100644
+--- a/target/linux/rockchip/patches-5.4/102-rockchip-enable-LAN-port-on-NanoPi-R2S.patch
++++ b/target/linux/rockchip/patches-5.4/102-rockchip-enable-LAN-port-on-NanoPi-R2S.patch
+@@ -32,7 +32,7 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
+  	leds {
+  		compatible = "gpio-leds";
+  
+-@@ -288,6 +300,12 @@
++@@ -299,6 +311,12 @@
+  			rockchip,pins = <1 RK_PD4 RK_FUNC_GPIO &pcfg_pull_up>;
+  		};
+  	};
+@@ -45,7 +45,7 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
+  };
+  
+  &sdmmc {
+-@@ -328,3 +346,12 @@
++@@ -339,3 +357,12 @@
+  &usb_host0_ohci {
+  	status = "okay";
+  };
+diff --git a/target/linux/rockchip/patches-5.4/103-arm64-rockchip-add-OF-node-for-USB-eth-on-NanoPi-R2S.patch b/target/linux/rockchip/patches-5.4/103-arm64-rockchip-add-OF-node-for-USB-eth-on-NanoPi-R2S.patch
+index 96c756609574..3b97ecde9e06 100644
+--- a/target/linux/rockchip/patches-5.4/103-arm64-rockchip-add-OF-node-for-USB-eth-on-NanoPi-R2S.patch
++++ b/target/linux/rockchip/patches-5.4/103-arm64-rockchip-add-OF-node-for-USB-eth-on-NanoPi-R2S.patch
+@@ -14,7 +14,7 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
+ 
+ --- a/arch/arm64/boot/dts/rockchip/rk3328-nanopi-r2s.dts
+ +++ b/arch/arm64/boot/dts/rockchip/rk3328-nanopi-r2s.dts
+-@@ -354,4 +354,11 @@
++@@ -365,4 +365,11 @@
+  &usbdrd_dwc3 {
+  	dr_mode = "host";
+  	status = "okay";

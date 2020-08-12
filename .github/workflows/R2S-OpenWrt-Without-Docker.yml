@@ -3,7 +3,7 @@ name: OpenWrt for R2S
 on:
   push:
     branches:
-      - master
+      - experiment
     paths:
       - 'CHANGELOG.md'
       - '.github/workflows/R2S-OpenWrt-Without-Docker.yml'
@@ -21,7 +21,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
       with:
-        ref: 'master'
+        ref: 'experiment'
 
     - name: Show system and free disk space
       run: |

@@ -1,4 +1,4 @@
-name: OpenWrt for R2S
+name: Experimentl OpenWrt for R2S
 
 on:
   push:

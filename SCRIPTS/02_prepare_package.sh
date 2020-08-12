@@ -3,7 +3,7 @@ set -x
 set -e
 alias wget="$(which wget) --https-only --retry-connrefused"
 
-MYNOWKERNEL=$(grep 'LINUX_VERSION-5.4' kernel-version.mk)
+MYNOWKERNEL=$(grep 'LINUX_VERSION-5.4' include/kernel-version.mk)
 [ ${MYNOWKERNEL##*.} -lt 58 ] && patch -p1 < ../PATCH/kernel58.patch
 unset MYNOWKERNEL
 

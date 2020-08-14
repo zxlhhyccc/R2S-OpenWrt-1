@@ -1,0 +1,47 @@
+From 5de9578b82bbe1fe971a13085bdbcdfeac90dd49 Mon Sep 17 00:00:00 2001
+From: John Audia <graysky@archlinux.us>
+Date: Sat, 1 Aug 2020 17:41:27 -0400
+Subject: [PATCH] linux-firmware: update to 20200721
+
+git log --pretty=oneline --abbrev-commit 20200619..20200721
+2b823fc (HEAD -> master, tag: 20200721, main) linux-firmware: Update AMD SEV firmware
+e33306f Merge branch 'qca_0714' of https://github.com/bgodavar/qca_bt_fw into main
+1d1c80b Update to 20200629111339 version to aligh SDK. Mainly fix DFS false alarm.
+69c7f0b rtl_nic: update firmware for RTL8125B
+f39b687 Update binary firmware for MT7663 based devices to include firmware offload feature and low power feature.
+3882702 QCA: Add correct bin file for WCN3991
+3d3a06f linux-firmware: Update firmware file for Intel Bluetooth AX201
+b7849f7 linux-firmware: Update firmware file for Intel Bluetooth AX200
+07b0375 linux-firmware: Update firmware file for Intel Bluetooth 9560
+44bf1b1 linux-firmware: Update firmware file for Intel Bluetooth 9260
+7169ab3 linux-firmware: wilc1000: add wilc1000 v15.4 FW
+b1497fc Merge https://github.com/rjliao-qca/qca-btfw into main
+c4e04b4 QCA: Update Bluetooth firmware for QCA6390
+74ac3b5 Merge https://github.com/bgodavar/qca_wcn3991 into main
+1a0c0c2 amdgpu: add UVD firmware for SI asics
+24cc617 QCA: Update WCN3991 FW files
+
+Signed-off-by: John Audia <graysky@archlinux.us>
+---
+ package/firmware/linux-firmware/Makefile | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/package/firmware/linux-firmware/Makefile b/package/firmware/linux-firmware/Makefile
+index b50a025409c0..36d597c21ff8 100644
+--- a/package/firmware/linux-firmware/Makefile
++++ b/package/firmware/linux-firmware/Makefile
+@@ -8,12 +8,12 @@
+ include $(TOPDIR)/rules.mk
+ 
+ PKG_NAME:=linux-firmware
+-PKG_VERSION:=20200619
++PKG_VERSION:=20200721
+ PKG_RELEASE:=1
+ 
+ PKG_SOURCE_URL:=@KERNEL/linux/kernel/firmware
+ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
+-PKG_HASH:=962d3ae197d226c8259f9cc7746f7ef12a9d23787cd56bd27302021ba6339722
++PKG_HASH:=898c334b0da7de6ea173899beb696fad647dce0c06960d7368ba4d4e802fb860
+ 
+ PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
+ 

@@ -11,6 +11,10 @@ MYNOWFIRMWARE=$(grep 'PKG_VERSION:=' package/firmware/linux-firmware/Makefile)
 unset MYNOWFIRMWARE
 
 ### 1. 准备工作 ###
+# 修复启动问题
+wget -qO - https://patch-diff.githubusercontent.com/raw/openwrt/openwrt/pull/3277.patch | patch -p1
+# dnsmasq: abort dhcp_check on interface state
+wget -qO - https://github.com/project-openwrt/openwrt/commit/abb0ba46c021595d49c35609b70e473e6c79d127.patch | patch -p1
 # 使用19.07的feed源
 rm -f ./feeds.conf.default
 wget            https://raw.githubusercontent.com/openwrt/openwrt/openwrt-19.07/feeds.conf.default
@@ -27,21 +31,29 @@ sed -i 's/-Os/-O2/g' include/target.mk
 ./scripts/feeds install -a
 
 ### 2. 替换语言支持 ###
-# 更换Node.js版本
-rm -rf ./feeds/packages/lang/node
-svn co https://github.com/openwrt/packages/trunk/lang/node   feeds/packages/lang/node
 # 更换GCC版本
 rm -rf ./feeds/packages/devel/gcc
-svn co https://github.com/openwrt/packages/trunk/devel/gcc   feeds/packages/devel/gcc
+svn co https://github.com/openwrt/packages/trunk/devel/gcc feeds/packages/devel/gcc
+rm -rf ./feeds/packages/devel/gcc/.svn
+# 更换Node.js版本
+rm -rf ./feeds/packages/lang/node
+svn co https://github.com/nxhack/openwrt-node-packages/trunk/node feeds/packages/lang/node
+rm -rf ./feeds/packages/lang/node/.svn
 # 更换Golang版本
 rm -rf ./feeds/packages/lang/golang
 svn co https://github.com/openwrt/packages/trunk/lang/golang feeds/packages/lang/golang
+rm -rf ./feeds/packages/lang/golang/.svn
+rm -rf ./feeds/packages/lang/golang/golang
+svn co https://github.com/project-openwrt/packages/trunk/lang/golang/golang feeds/packages/lang/golang/golang
+rm -rf ./feeds/packages/lang/golang/golang/.svn
 
 ### 3. 必要的Patch ###
 # Patch i2c0
 cp -f ../PATCH/new/main/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch ./target/linux/rockchip/patches-5.4/998-rockchip-enable-i2c0-on-NanoPi-R2S.patch
 # Patch rk-crypto
 patch -p1 < ../PATCH/new/main/kernel_crypto-add-rk3328-crypto-support.patch
+# luci network
+patch -p1 < ../PATCH/new/main/luci_network-add-packet-steering.patch
 # Patch jsonc
 patch -p1 < ../PATCH/new/package/use_json_object_new_int64.patch
 # dnsmasq filter AAAA
@@ -123,21 +135,21 @@ rm -f ./package/lean/luci-app-ssr-plus/luasrc/view/shadowsocksr/ssrurl.htm
 wget -P package/lean/luci-app-ssr-plus/luasrc/view/shadowsocksr https://raw.githubusercontent.com/QiuSimons/Others/master/luci-app-ssr-plus/luasrc/view/shadowsocksr/ssrurl.htm
 # SSRP依赖
 rm -rf ./feeds/packages/net/kcptun ./feeds/packages/net/shadowsocks-libev
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/shadowsocksr-libev package/lean/shadowsocksr-libev
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/pdnsd-alt          package/lean/pdnsd
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/v2ray              package/lean/v2ray
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/kcptun             package/lean/kcptun
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/v2ray-plugin       package/lean/v2ray-plugin
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/srelay             package/lean/srelay
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/microsocks         package/lean/microsocks
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/dns2socks          package/lean/dns2socks
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/redsocks2          package/lean/redsocks2
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/proxychains-ng     package/lean/proxychains-ng
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/ipt2socks          package/lean/ipt2socks
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/simple-obfs        package/lean/simple-obfs
-svn co https://github.com/coolsnowwolf/packages/trunk/net/shadowsocks-libev       package/lean/shadowsocks-libev
-svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/trojan             package/lean/trojan
-svn co https://github.com/project-openwrt/openwrt/trunk/package/lean/tcpping      package/lean/tcpping
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/shadowsocksr-libev  package/lean/shadowsocksr-libev
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/pdnsd-alt           package/lean/pdnsd
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/v2ray               package/lean/v2ray
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/kcptun              package/lean/kcptun
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/v2ray-plugin        package/lean/v2ray-plugin
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/srelay              package/lean/srelay
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/microsocks          package/lean/microsocks
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/dns2socks           package/lean/dns2socks
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/redsocks2           package/lean/redsocks2
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/proxychains-ng      package/lean/proxychains-ng
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/ipt2socks           package/lean/ipt2socks
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/simple-obfs         package/lean/simple-obfs
+svn co https://github.com/coolsnowwolf/packages/trunk/net/shadowsocks-libev        package/lean/shadowsocks-libev
+svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/trojan              package/lean/trojan
+svn co https://github.com/project-openwrt/openwrt/trunk/package/lean/tcpping       package/lean/tcpping
 # PASSWALL
 svn co https://github.com/xiaorouji/openwrt-package/trunk/lienol/luci-app-passwall package/new/luci-app-passwall
 svn co https://github.com/xiaorouji/openwrt-package/trunk/package/tcping           package/new/tcping
@@ -145,7 +157,7 @@ svn co https://github.com/xiaorouji/openwrt-package/trunk/package/trojan-go     
 svn co https://github.com/xiaorouji/openwrt-package/trunk/package/trojan-plus      package/new/trojan-plus
 svn co https://github.com/xiaorouji/openwrt-package/trunk/package/brook            package/new/brook
 # OpenClash
-svn co https://github.com/vernesong/OpenClash/branches/master/luci-app-openclash  package/new/luci-app-openclash
+git clone -b master --single-branch https://github.com/vernesong/OpenClash         package/new/luci-app-openclash
 # 订阅转换
 svn co https://github.com/project-openwrt/openwrt/branches/openwrt-19.07/package/ctcgfw/subconverter package/new/subconverter
 svn co https://github.com/project-openwrt/openwrt/branches/openwrt-19.07/package/ctcgfw/jpcre2       package/new/jpcre2
@@ -169,72 +181,7 @@ cp -f ../REPLACE/zzz-default-settings package/lean/lean-translate/files/zzz-defa
 mkdir -p                      package/base-files/files/root
 cp -f ../PRECONFS/vimrc       package/base-files/files/root/.vimrc
 cp -f ../PRECONFS/screenrc    package/base-files/files/root/.screenrc
-#crypto
-echo '
-CPU_FREQ=y
-CPU_FREQ_GOV_ONDEMAND=y
-CONFIG_REGULATOR_GPIO=y
-CONFIG_CGROUP_HUGETLB=n
-CONFIG_CRYPTO_CRCT10DIF_ARM64_CE=y
-CONFIG_ARM64_CRYPTO=y
-CONFIG_CRYPTO_AES_ARM64=y
-CONFIG_CRYPTO_AES_ARM64_BS=y
-CONFIG_CRYPTO_AES_ARM64_CE=y
-CONFIG_CRYPTO_AES_ARM64_CE_BLK=y
-CONFIG_CRYPTO_AES_ARM64_CE_CCM=y
-CONFIG_CRYPTO_AES_ARM64_NEON_BLK=y
-CONFIG_CRYPTO_AUTHENC=y
-CONFIG_CRYPTO_CBC=y
-CONFIG_CRYPTO_CHACHA20=y
-CONFIG_CRYPTO_CHACHA20_NEON=y
-CONFIG_CRYPTO_CRYPTD=y
-CONFIG_CRYPTO_CTR=y
-CONFIG_CRYPTO_DEV_CCREE=y
-CONFIG_CRYPTO_DEV_HISI_SEC=y
-CONFIG_CRYPTO_DRBG=y
-CONFIG_CRYPTO_DRBG_CTR=y
-CONFIG_CRYPTO_DRBG_HASH=y
-CONFIG_CRYPTO_DRBG_HMAC=y
-CONFIG_CRYPTO_DRBG_MENU=y
-CONFIG_CRYPTO_ECB=y
-CONFIG_CRYPTO_GF128MUL=y
-CONFIG_CRYPTO_GHASH_ARM64_CE=y
-CONFIG_CRYPTO_HMAC=y
-CONFIG_CRYPTO_HW=y
-CONFIG_CRYPTO_JITTERENTROPY=y
-CONFIG_CRYPTO_LIB_DES=y
-CONFIG_CRYPTO_LIB_SHA256=y
-CONFIG_CRYPTO_MD5=y
-CONFIG_CRYPTO_NHPOLY1305=y
-CONFIG_CRYPTO_NHPOLY1305_NEON=y
-CONFIG_CRYPTO_NULL=y
-CONFIG_CRYPTO_POLY1305=y
-CONFIG_CRYPTO_RNG=y
-CONFIG_CRYPTO_RNG_DEFAULT=y
-CONFIG_CRYPTO_SEQIV=y
-CONFIG_CRYPTO_SHA1=y
-CONFIG_CRYPTO_SHA1_ARM64_CE=y
-CONFIG_CRYPTO_SHA256=y
-CONFIG_CRYPTO_SHA256_ARM64=y
-CONFIG_CRYPTO_SHA2_ARM64_CE=y
-CONFIG_CRYPTO_SHA3=y
-CONFIG_CRYPTO_SHA3_ARM64=y
-CONFIG_CRYPTO_SHA512=y
-CONFIG_CRYPTO_SHA512_ARM64=y
-CONFIG_CRYPTO_SHA512_ARM64_CE=y
-CONFIG_CRYPTO_SIMD=y
-CONFIG_CRYPTO_SM3=y
-CONFIG_CRYPTO_SM3_ARM64_CE=y
-CONFIG_CRYPTO_SM4=y
-CONFIG_CRYPTO_SM4_ARM64_CE=y
-CONFIG_CRYPTO_USER_API=y
-CONFIG_CRYPTO_USER_API_AEAD=y
-CONFIG_CRYPTO_USER_API_HASH=y
-CONFIG_CRYPTO_USER_API_RNG=y
-CONFIG_CRYPTO_USER_API_SKCIPHER=y
-CONFIG_CRYPTO_XTS=y
-CONFIG_SG_SPLIT=y
-' >> ./target/linux/rockchip/armv8/config-5.4
+
 ### 5. 最后的收尾工作 ###
 mkdir -p                               package/base-files/files/usr/bin
 cp -f ../PATCH/new/script/chinadnslist package/base-files/files/usr/bin/update-chinadns-list

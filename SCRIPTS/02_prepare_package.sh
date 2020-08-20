@@ -3,11 +3,8 @@ set -x
 set -e
 alias wget="$(which wget) --https-only --retry-connrefused"
 
-MYNOWKERNEL=$(grep 'LINUX_VERSION-5.4' include/kernel-version.mk)
-[ ${MYNOWKERNEL##*.} -lt 58 ] && patch -p1 < ../PATCH/kernel58.patch
-unset MYNOWKERNEL
 MYNOWFIRMWARE=$(grep 'PKG_VERSION:=' package/firmware/linux-firmware/Makefile)
-[ $MYNOWFIRMWARE -lt 20200721 ] && patch -p1 < ../PATCH/linux-firmware-20200721.patch
+[ $MYNOWFIRMWARE -lt 20200817 ] && patch -p1 < ../PATCH/linux-firmware-20200817.patch
 unset MYNOWFIRMWARE
 
 ### 1. 准备工作 ###

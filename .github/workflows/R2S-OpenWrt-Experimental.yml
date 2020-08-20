@@ -6,7 +6,7 @@ on:
       - experiment
     paths:
       - 'CHANGELOG.md'
-      - '.github/workflows/R2S-OpenWrt-Without-Docker.yml'
+      - '.github/workflows/R2S-OpenWrt-Experimental.yml'
 
 env:
   UPLOAD_FIRMWARE: true
